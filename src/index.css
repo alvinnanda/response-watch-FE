@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  /* Fonts - Modern Geometric Sans */
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* Colors - Modern Indigo/Violet Palette */
+  /* Colors - Modern Monochrome Palette */
+  --color-primary: #000000;       /* black */
+  --color-primary-hover: #1f2937; /* gray-800 */
+  
+  --color-secondary: #64748b;     /* slate-500 */
+
+  /* Surface Colors */
+  --color-surface-50: #f8fafc;    /* slate-50 */
+  --color-surface-100: #ffffff;   /* white (cards) */
+  --color-surface-200: #e2e8f0;   /* slate-200 */
+  
+  /* Modern Accents */
+  --color-accent-blue: #3b82f6;
+  --color-accent-purple: #8b5cf6;
+  
+  /* Radius - More Playful */
+  --radius-lg: 1rem;      /* 16px */
+  --radius-xl: 1.5rem;    /* 24px */
+}
+
+/* Global Reset & Base Styles */
+:root {
+  color-scheme: light;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface-50);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.05) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: #0f172a; /* slate-900 */
+}
+
+/* Custom Scrollbar - Hidden by default, visible on hover/scroll */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 20px;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb,
+.custom-scrollbar:focus-within::-webkit-scrollbar-thumb,
+.custom-scrollbar:active::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5); /* gray-400 with opacity */
+}
