@@ -115,7 +115,7 @@ export function RegisterPage() {
               )}
               
               <Input
-                label="Username"
+                label="Public Name"
                 type="text"
                 placeholder="johndoe"
                 value={username}
@@ -125,7 +125,7 @@ export function RegisterPage() {
               />
 
               <Input
-                label="Full Name"
+                label="Name"
                 type="text"
                 placeholder="John Doe"
                 value={fullName}
