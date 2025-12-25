@@ -59,7 +59,7 @@ function App() {
           {/* Public Smart Link */}
           <Route path="/t/:token" element={<SmartLinkPage />} />
           <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/monitoring/:username" element={<PublicMonitoringPage />} />
+        <Route path="/m/:username" element={<PublicMonitoringPage />} />
           <Route path="/landing-page" element={<PublicCreateRequestPage />} />
           
           {/* Root Route: Logic is handled in RootRoute component */}
