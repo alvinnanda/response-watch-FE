@@ -39,6 +39,7 @@ export function CreateRequestForm({
   const [description, setDescription] = useState(initialValues?.description || '');
   const [followupLink, setFollowupLink] = useState(initialValues?.followupLink || '');
   const [selectedGroupId, setSelectedGroupId] = useState(initialValues?.vendorGroupId || '');
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +55,7 @@ export function CreateRequestForm({
     <Card padding="lg">
       <form onSubmit={handleSubmit} className="space-y-5">
         <Input
-          label="Title"
+          label="Judul"
           placeholder="e.g., Server Down Issue"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -63,7 +64,7 @@ export function CreateRequestForm({
         
         <div className="w-full">
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Description (Optional)
+            Deskripsi (Optional)
           </label>
           <textarea
             placeholder="Additional details about the issue..."
@@ -81,29 +82,48 @@ export function CreateRequestForm({
           />
         </div>
 
-        <Input
-          label="Followup Link (Optional)"
-          placeholder="e.g. Jira Ticket, Asana Task, Docs URL..."
-          value={followupLink}
-          onChange={(e) => setFollowupLink(e.target.value)}
-          helperText="Add a link to your project management tool for tracking."
-        />
+        <div className="flex">
+          <button
+            type="button"
+            onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
+            className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors focus:outline-none"
+          >
+            {isAdvancedOpen ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            )}
+            More Options
+          </button>
+        </div>
 
-        {onLoadMoreGroups && (
-          <div className="w-full">
-            <InfiniteSelect
-              label="Group (Optional)"
-              placeholder="Select a vendor group..."
-              options={vendorGroups || []}
-              value={selectedGroupId}
-              onChange={setSelectedGroupId}
-              onLoadMore={onLoadMoreGroups}
-              hasMore={hasMoreGroups}
-              isLoading={isLoadingGroups}
+        {isAdvancedOpen && (
+          <div className="space-y-5 pl-2 border-l-2 border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
+            <Input
+              label="Followup Link (Optional)"
+              placeholder="e.g. Jira Ticket, Asana Task, Docs URL..."
+              value={followupLink}
+              onChange={(e) => setFollowupLink(e.target.value)}
+              helperText="Add a link to your project management tool for tracking."
             />
-            <p className="text-xs text-gray-500 mt-1">
-              If selected, the link will let vendors choose their name from this group.
-            </p>
+
+            {onLoadMoreGroups && (
+              <div className="w-full">
+                <InfiniteSelect
+                  label="Group (Optional)"
+                  placeholder="Select a vendor group..."
+                  options={vendorGroups || []}
+                  value={selectedGroupId}
+                  onChange={setSelectedGroupId}
+                  onLoadMore={onLoadMoreGroups}
+                  hasMore={hasMoreGroups}
+                  isLoading={isLoadingGroups}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Jika dipilih, link akan memungkinkan vendor memilih nama mereka dari grup ini.
+                </p>
+              </div>
+            )}
           </div>
         )}
 

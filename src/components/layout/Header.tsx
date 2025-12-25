@@ -67,8 +67,7 @@ export function Header() {
           {/* Navigation */}
           <nav className="flex items-center gap-1">
             {[
-              { path: '/dashboard', label: 'Dasbor' },
-              { path: '/dashboard/create', label: 'Permintaan' },
+              { path: '/dashboard/create', label: 'Buat Permintaan' },
               { path: '/dashboard/groups', label: 'Grup' }
             ].map((item) => (
               <Link

@@ -135,6 +135,7 @@ export interface PublicRequest {
   finished_at?: string;
   duration_seconds?: number;
   response_time_seconds?: number;
+  pic_is_public?: boolean;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -188,6 +189,7 @@ export async function finishPublicRequest(token: string, picName?: string): Prom
   
   return response.json();
 }
+
 /**
  * Response for public monitoring
  */
@@ -211,12 +213,14 @@ export interface PublicMonitoringResponse {
  */
 export async function getPublicRequestsByUsername(
   username: string, 
-  params: { status?: string, page: number, limit: number }
+  params: { status?: string, page: number, limit: number, start_date?: string, end_date?: string }
 ): Promise<PublicMonitoringResponse> {
   const query = new URLSearchParams();
   query.append('page', params.page.toString());
   query.append('limit', params.limit.toString());
   if (params.status) query.append('status', params.status);
+  if (params.start_date) query.append('start_date', params.start_date);
+  if (params.end_date) query.append('end_date', params.end_date);
 
   const response = await fetch(`${API_BASE_URL}/public/monitoring/${username}?${query.toString()}`);
   

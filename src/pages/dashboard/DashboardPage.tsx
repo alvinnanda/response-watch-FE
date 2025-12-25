@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Card, Input } from '../../components/ui';
 import { getRequests, getRequestStats } from '../../api/requests';
 import type { Request, RequestStats, Pagination, RequestFilters } from '../../types/requests';
@@ -43,6 +44,7 @@ export function DashboardPage() {
   const [showStats, setShowStats] = useState(window.innerWidth >= 640);
   const [showFilters, setShowFilters] = useState(window.innerWidth >= 640);
   const [editingRequest, setEditingRequest] = useState<Request | null>(null);
+  const navigate = useNavigate();
 
   // Fetch requests
   const fetchRequests = useCallback(async () => {
@@ -473,6 +475,29 @@ export function DashboardPage() {
           }}
         />
       )}
+      {/* Floating Action Button for Create Request */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <Button
+          variant="primary"
+          className="rounded-full shadow-xl w-12 h-12 p-0 flex items-center justify-center hover:scale-105 transition-transform duration-200"
+          onClick={() => navigate('/dashboard/create')}
+          title="Create New Request"
+        >
+        <svg 
+              className="w-4 h-4" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M13 10V3L4 14h7v7l9-11h-7z" 
+              />
+            </svg>
+        </Button>
+      </div>
     </div>
   );
 }

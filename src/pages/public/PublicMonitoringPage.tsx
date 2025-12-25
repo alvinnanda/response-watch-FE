@@ -4,9 +4,10 @@ import moment from 'moment';
 import { getPublicRequestsByUsername, type PublicRequest } from '../../api/requests';
 import { ActiveAgentsDashboard } from './components/ActiveAgentsDashboard';
 import { KanbanColumn } from './components/KanbanColumn';
+import { DateRangeFilter } from './components/DateRangeFilter';
 
 // Hook for managing a list of requests
-function useRequestList(username: string, status: string, enabled: boolean = true) {
+function useRequestList(username: string, status: string, startDate: string, endDate: string, enabled: boolean = true) {
   const [requests, setRequests] = useState<PublicRequest[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -17,7 +18,6 @@ function useRequestList(username: string, status: string, enabled: boolean = tru
   const loadingRef = useRef(false);
   const hasMoreRef = useRef(true);
   const pageRef = useRef(1);
-  const initializedRef = useRef(false);
 
   // Sync refs with state
   useEffect(() => {
@@ -31,6 +31,9 @@ function useRequestList(username: string, status: string, enabled: boolean = tru
   useEffect(() => {
     pageRef.current = page;
   }, [page]);
+
+  // Track last fetched filter state to prevent double fetch
+  const lastFetchedFiltersRef = useRef<string>('');
 
   // Stable fetch function that reads from refs
   const fetchRequests = useCallback(async (isLoadMore: boolean = false) => {
@@ -47,7 +50,9 @@ function useRequestList(username: string, status: string, enabled: boolean = tru
       const data = await getPublicRequestsByUsername(username, {
         status,
         page: currentPage,
-        limit: 20
+        limit: 20,
+        start_date: startDate,
+        end_date: endDate
       });
       
       setRequests(prev => {
@@ -74,15 +79,25 @@ function useRequestList(username: string, status: string, enabled: boolean = tru
       loadingRef.current = false;
       setLoading(false);
     }
-  }, [username, status, enabled]); // Stable dependencies only
+  }, [username, status, enabled, startDate, endDate]); // Stable dependencies only
 
-  // Initial load - runs once
+  // Single effect for initial load and filter changes
   useEffect(() => {
-    if (enabled && !initializedRef.current) {
-      initializedRef.current = true;
-      fetchRequests(false);
-    }
-  }, [enabled, fetchRequests]);
+    if (!enabled) return;
+    
+    const filterKey = `${username}|${status}|${startDate}|${endDate}`;
+    if (lastFetchedFiltersRef.current === filterKey) return; // Already fetched with these filters
+    
+    lastFetchedFiltersRef.current = filterKey;
+    
+    // Reset pagination for new filter
+    pageRef.current = 1;
+    setPage(1);
+    hasMoreRef.current = true;
+    setHasMore(true);
+    
+    fetchRequests(false);
+  }, [enabled, username, status, startDate, endDate, fetchRequests]);
 
   // Polling for updates (every 30 seconds) - only for fresh data, not pagination
   useEffect(() => {
@@ -113,10 +128,16 @@ export function PublicMonitoringPage() {
   const [showOverview, setShowOverview] = useState(false);
   const [showKanban, setShowKanban] = useState(true);
   
+  // Date filter with defaults: today for both start and end
+  const today = moment().format('YYYY-MM-DD');
+  const minDate = moment().subtract(90, 'days').format('YYYY-MM-DD');
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
+  
   // Lifted state for data requests
-  const waitingList = useRequestList(username || '', 'waiting', true);
-  const inProgressList = useRequestList(username || '', 'in_progress', true);
-  const doneList = useRequestList(username || '', 'done', true);
+  const waitingList = useRequestList(username || '', 'waiting', startDate, endDate, true);
+  const inProgressList = useRequestList(username || '', 'in_progress', startDate, endDate, true);
+  const doneList = useRequestList(username || '', 'done', startDate, endDate, true);
   
   if (!username) return null;
 
@@ -164,6 +185,8 @@ export function PublicMonitoringPage() {
       </nav>
 
       <div className="flex-1 pt-28 pb-8 h-screen overflow-hidden flex flex-col">
+
+
           {/* Active Agents Section */}
           <div className="px-4 sm:px-6 lg:px-8 mb-6 flex-shrink-0 transition-all duration-500 ease-out">
               <div className="max-w-7xl mx-auto w-full">
@@ -211,11 +234,25 @@ export function PublicMonitoringPage() {
                       </div>
                       Response Watch
                     </h3>
-                    <button className="p-1.5 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-lg transition-colors">
-                      <svg className={`w-5 h-5 transition-transform duration-200 ${showKanban ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <DateRangeFilter 
+                          startDate={startDate}
+                          endDate={endDate}
+                          onChange={(start, end) => {
+                            setStartDate(start);
+                            setEndDate(end);
+                          }}
+                          minDate={minDate}
+                          maxDate={today}
+                        />
+                      </div>
+                      <button className="p-1.5 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-lg transition-colors">
+                        <svg className={`w-5 h-5 transition-transform duration-200 ${showKanban ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
 
                   {showKanban && (

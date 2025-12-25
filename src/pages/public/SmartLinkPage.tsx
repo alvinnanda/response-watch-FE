@@ -30,6 +30,43 @@ const linkifyText = (text: string) => {
   });
 };
 
+const ShareButton = () => {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 800);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleShare}
+      className="absolute top-0 right-0 p-2 text-gray-400 hover:text-gray-600 rounded-full transition-all"
+      title="Salin Tautan"
+    >
+      {copied ? (
+        <span className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full whitespace-nowrap shadow-sm border border-green-100">
+          Tersalin!
+        </span>
+      ) : null}
+      {copied ? (
+        <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      ) : (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+        </svg>
+      )}
+    </button>
+  );
+};
+
 export function SmartLinkPage() {
   const { token } = useParams<{ token: string }>();
   const [request, setRequest] = useState<PublicRequest | null>(null);
@@ -41,6 +78,7 @@ export function SmartLinkPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -216,6 +254,8 @@ export function SmartLinkPage() {
     );
   };
 
+
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center px-4 py-8">
       <div className="w-full max-w-md mx-auto">
@@ -223,10 +263,14 @@ export function SmartLinkPage() {
         {/* State A: WAITING */}
         {status === 'waiting' && (
           <Card padding="lg" shadow="lg" className="border-t-4">
-            <div className="text-center space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20 text-sm font-medium">
-                <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
-                Menunggu Tanggapan
+            <div className="text-center space-y-6 relative">
+              <ShareButton />
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-orange-50 text-orange-700 text-sm font-medium mb-6 border border-orange-100">
+                <span className="flex h-2 w-2 relative mr-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                </span>
+                New: Request
               </div>
               
               <RequestHeader />
@@ -240,10 +284,10 @@ export function SmartLinkPage() {
                   className="h-12 text-base shadow-xl shadow-indigo-500/20"
                   disabled={actionLoading}
                 >
-                  {actionLoading ? 'Memulai...' : 'Saya Mulai'}
+                  {actionLoading ? 'Memulai...' : 'Mulai Pengerjaan'}
                 </Button>
                 <p className="text-xs text-gray-400 mt-4">
-                  Mengklik mulai akan memberi tahu orang lain dan memulai penghitung waktu.
+                  Mengklik mulai akan memberi tahu pemilik dan memulai penghitung waktu.
                 </p>
               </div>
             </div>
@@ -253,7 +297,8 @@ export function SmartLinkPage() {
         {/* State B: IN PROGRESS */}
         {status === 'in_progress' && (
           <Card padding="lg" shadow="lg" className="border-t-4 border-blue-500">
-            <div className="text-center space-y-6">
+            <div className="text-center space-y-6 relative">
+              <ShareButton />
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 ring-1 ring-blue-700/10 text-sm font-medium">
                 <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
                 In Progress
@@ -279,8 +324,7 @@ export function SmartLinkPage() {
 
               <Button 
                 fullWidth 
-                variant="secondary" 
-                onClick={handleFinish} 
+                onClick={() => setShowFinishConfirm(true)} 
                 className="h-12 text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                 disabled={actionLoading}
               >
@@ -292,8 +336,9 @@ export function SmartLinkPage() {
 
         {/* State C: DONE */}
         {status === 'done' && (
-          <Card padding="lg" shadow="lg" className="border-t-4 border-green-500">
-            <div className="text-center space-y-6">
+          <Card padding="lg" shadow="lg" className="border-t-4 border-green-100">
+            <div className="text-center space-y-6 relative">
+              <ShareButton />
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-700 ring-1 ring-green-600/20 text-sm font-medium">
                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -319,12 +364,12 @@ export function SmartLinkPage() {
                   <div className="w-4 h-4 mt-1 rounded-full bg-blue-500 ring-4 ring-white shadow-sm shadow-blue-500/30 shrink-0"></div>
                   <div>
                     <p className="text-sm font-bold text-gray-900">Tanggapan Dimulai</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-500">oleh {request.start_pic || selectedPic || 'Teknisi'}</span>
+                    <div className="flex gap-2 mt-1 flex-col">
+                      <span className="text-xs text-gray-500">Oleh {request.start_pic || selectedPic || 'PIC'}.</span>
                       {request.response_time_seconds && (
-                        <span className="text-[10px] px-1.5 py-0.5 bg-white border border-gray-200 rounded text-gray-400">
-                          {formatDuration(request.response_time_seconds)} waktu respons
-                        </span>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Waktu Respons: <span className="font-mono text-gray-700 font-medium">{formatDuration(request.response_time_seconds)}</span>
+                        </p>
                       )}
                     </div>
                   </div>
@@ -461,6 +506,44 @@ export function SmartLinkPage() {
               <div className="mt-6 pt-2">
                 <Button fullWidth onClick={() => setShowDescModal(false)}>
                   Tutup
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Confirmation Modal */}
+        {showFinishConfirm && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all">
+            <Card className="w-full max-w-sm text-center" padding="lg">
+              <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              
+              <h3 className="font-bold text-gray-900 text-lg mb-2">Selesaikan Permintaan?</h3>
+              <p className="text-gray-500 text-sm mb-6">
+                Apakah Anda yakin ingin menyelesaikan permintaan ini? Waktu pengerjaan akan dihentikan.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowFinishConfirm(false)}
+                  disabled={actionLoading}
+                >
+                  Batal
+                </Button>
+                <Button 
+                  onClick={() => {
+                    handleFinish();
+                    setShowFinishConfirm(false);
+                  }}
+                  disabled={actionLoading}
+                  className="bg-green-600 hover:bg-green-700 text-white border-transparent"
+                >
+                  Ya, Selesai
                 </Button>
               </div>
             </Card>

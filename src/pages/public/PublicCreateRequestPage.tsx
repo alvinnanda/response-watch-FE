@@ -61,17 +61,17 @@ export function PublicCreateRequestPage() {
           </div>
           
           <div className="hidden md:flex items-center gap-1">
-             <a href="#features" className="px-4 py-2 rounded-full text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">Fitur</a>
-             <a href="#how-it-works" className="px-4 py-2 rounded-full text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">Cara Kerja</a>
-             <Link to="/pricing" className="px-4 py-2 rounded-full text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">Harga</Link>
+             <a href="#features" className="px-4 py-2 rounded-full text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">Features</a>
+             <a href="#how-it-works" className="px-4 py-2 rounded-full text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">How It Works</a>
+             <Link to="/pricing" className="px-4 py-2 rounded-full text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">Pricing</Link>
           </div>
 
           <div className="flex items-center gap-2">
             <Link to="/login" className="hidden sm:block px-4 py-2 rounded-full text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">
-              Masuk
+              Login
             </Link>
             <Link to="/login">
-              <Button size="sm" className="rounded-full px-5">Mulai</Button>
+              <Button size="sm" className="rounded-full px-5">Get Started</Button>
             </Link>
           </div>
         </div>
@@ -81,7 +81,7 @@ export function PublicCreateRequestPage() {
 
   const TrustedBy = () => (
     <div className="mt-8 pb-4 opacity-70">
-        <p className="text-sm font-semibold text-gray-500 tracking-wide uppercase mb-4">Dipercaya oleh tim modern di</p>
+        <p className="text-sm font-semibold text-gray-500 tracking-wide uppercase mb-4">Trusted by modern teams at</p>
         <div className="flex gap-6 items-center justify-center lg:justify-start flex-wrap grayscale opacity-60">
             {/* Mock Logos - In production use SVGs */}
             <div className="font-bold text-xl text-gray-600">ACME Corp</div>
@@ -114,12 +114,12 @@ export function PublicCreateRequestPage() {
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600 xl:inline">simplified.</span>
               </h1>
               <p className="mt-6 text-xl text-gray-500 sm:mt-8 sm:max-w-xl sm:mx-auto md:text-xl lg:mx-0 leading-relaxed">
-                Buat tautan pelacakan yang dapat dibagikan dalam hitungan detik. Tidak perlu login untuk vendor Anda. Dapatkan pembaruan waktu nyata dan hilangkan pengejaran email.
+                Create shareable tracking links dalam hitungan detik. Vendor kamu nggak perlu login. Dapatkan real-time updates dan stop chasing emails manual.
               </p>
               
-              <div className="mt-8 border-t border-gray-100 pt-8 hidden lg:block">
+              {/* <div className="mt-8 border-t border-gray-100 pt-8 hidden lg:block">
                  <TrustedBy />
-              </div>
+              </div> */}
             </div>
           </div>
           
@@ -131,15 +131,15 @@ export function PublicCreateRequestPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Permintaan Dibuat!</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Request Created!</h3>
                 <p className="text-gray-600 mb-4 max-w-xs mx-auto">
-                  Tautan pelacakan Anda siap. Bagikan langsung dengan vendor atau pemangku kepentingan Anda.
+                  Tracking link kamu ready. Share langsung ke vendor atau stakeholders kamu.
                 </p>
                 {remainingQuota !== null && (
                   <p className="text-sm text-gray-500 mb-4">
                     {remainingQuota > 0 
-                      ? `${remainingQuota} permintaan gratis tersisa bulan ini`
-                      : 'Ini adalah permintaan gratis terakhir Anda. Masuk untuk akses tanpa batas.'}
+                      ? `${remainingQuota} free requests left this month`
+                      : 'Ini last free request kamu. Login for unlimited access.'}
                   </p>
                 )}
                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 w-full mb-8 text-sm font-mono text-gray-800 break-all select-all flex items-center justify-between group cursor-pointer hover:border-primary/50 transition-colors"
@@ -152,10 +152,10 @@ export function PublicCreateRequestPage() {
                       onClick={() => setSuccessToken(null)}
                       fullWidth
                     >
-                      Buat Lainnya
+                      Create Another
                     </Button>
                     <Link to="/login" className="block w-full">
-                        <Button variant="outline" fullWidth>Masuk untuk Tanpa Batas</Button>
+                        <Button variant="outline" fullWidth>Login for Unlimited</Button>
                     </Link>
                 </div>
                </Card>
@@ -166,14 +166,14 @@ export function PublicCreateRequestPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Kuota Habis</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Quota Exceeded</h3>
                   <p className="text-gray-600 mb-6 max-w-xs mx-auto">{error}</p>
                   <div className="space-y-3 w-full">
                     <Link to="/login" className="block w-full">
-                      <Button fullWidth>Masuk untuk Tanpa Batas</Button>
+                      <Button fullWidth>Login for Unlimited Access</Button>
                     </Link>
                     <Button variant="outline" fullWidth onClick={() => setError(null)}>
-                      Coba Lagi
+                      Try Again
                     </Button>
                   </div>
                 </Card>
@@ -182,8 +182,8 @@ export function PublicCreateRequestPage() {
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-purple-600 rounded-2xl blur opacity-20 transform rotate-1"></div>
                     <div className="relative bg-white rounded-xl shadow-2xl ring-1 ring-gray-900/5">
                         <div className="p-6 border-b border-gray-100 bg-gray-50/50 rounded-t-xl">
-                            <h3 className="text-lg font-semibold text-gray-900">Mulai Melacak</h3>
-                            <p className="text-sm text-gray-500">Buat permintaan baru dalam hitungan detik (10 gratis/bulan)</p>
+                            <h3 className="text-lg font-semibold text-gray-900">New Request</h3>
+                            <p className="text-sm text-gray-500">Create new request in seconds</p>
                         </div>
                         <div className="p-6">
                             <CreateRequestForm 
@@ -208,9 +208,9 @@ export function PublicCreateRequestPage() {
       <div id="how-it-works" className="py-24 bg-gray-50/50 relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
               <div className="text-center max-w-3xl mx-auto mb-20">
-                  <h2 className="text-base font-semibold text-primary tracking-wide uppercase">Alur Kerja</h2>
-                  <p className="mt-2 text-3xl font-extrabold text-gray-900 sm:text-4xl">Cara kerja ResponseWatch</p>
-                  <p className="mt-4 text-xl text-gray-500">Tiga langkah mudah untuk menyederhanakan komunikasi vendor Anda.</p>
+                  <h2 className="text-base font-semibold text-primary tracking-wide uppercase">Workflow</h2>
+                  <p className="mt-2 text-3xl font-extrabold text-gray-900 sm:text-4xl">How ResponseWatch Works</p>
+                  <p className="mt-4 text-xl text-gray-500">3 easy steps to simplify komunikasi vendor kamu.</p>
               </div>
               
               <div className="relative">
@@ -219,9 +219,9 @@ export function PublicCreateRequestPage() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                       {[
-                          { step: '01', title: 'Create Request', desc: 'Isi formulir sederhana untuk membuat masalah terlacak. Tidak perlu login untuk permintaan cepat.' },
-                          { step: '02', title: 'Bagikan Link', desc: 'Kirim tautan aman dan unik ke vendor, mitra, atau anggota tim Anda melalui saluran apa pun.' },
-                          { step: '03', title: 'Lacak Status', desc: 'Vendor memperbarui status secara langsung tanpa akun. Anda mendapatkan notifikasi secara instan.' }
+                          { step: '01', title: 'Create Request', desc: 'Isi form simple untuk track issues. Nggak perlu login untuk quick requests.' },
+                          { step: '02', title: 'Share Link', desc: 'Kirim secure unique link ke vendor, mitra, atau team members lewat channel apa aja.' },
+                          { step: '03', title: 'Track Status', desc: 'Vendor update status langsungtanpa bikin akun. Track Real-time di public page.' }
                       ].map((item, idx) => (
                           <div key={idx} className="relative bg-white md:bg-transparent p-6 md:p-0 rounded-xl shadow-sm md:shadow-none border md:border-none border-gray-100">
                               <div className="w-24 h-24 bg-white border-2 border-primary/10 rounded-full flex items-center justify-center mx-auto relative z-10 shadow-sm mb-6">
@@ -243,17 +243,17 @@ export function PublicCreateRequestPage() {
     <div id="features" className="py-24 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="lg:text-center mb-16">
-          <h2 className="text-base font-semibold text-primary tracking-wide uppercase">Fitur</h2>
+          <h2 className="text-base font-semibold text-primary tracking-wide uppercase">Features</h2>
           <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-            Segala yang Anda butuhkan untuk <span className="text-primary">tetap memegang kendali</span>
+            Everything you need to <span className="text-primary">stay in control</span>
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
-                title: 'Tautan Instan',
-                desc: 'Hasilkan tautan unik dan aman untuk setiap masalah dalam satu klik. Tidak perlu orientasi yang rumit.',
+                title: 'Instant Links',
+                desc: 'Generate unique secure link untuk setiap issue in one click. No complicated onboarding.',
                 color: 'bg-blue-500', 
                 icon: (
                   <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -262,8 +262,8 @@ export function PublicCreateRequestPage() {
                 ),
               },
               {
-                title: 'Pembaruan Langsung',
-                desc: 'Lihat perubahan status saat itu terjadi. Hilangkan email "hanya memeriksa" selamanya.',
+                title: 'Real-time Updates',
+                desc: 'Lihat status langsung di public page. Say goodbye to "just checking in" tasks forever.',
                  color: 'bg-green-500',
                 icon: (
                   <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -272,8 +272,8 @@ export function PublicCreateRequestPage() {
                 ),
               },
               {
-                title: 'Jejak Audit',
-                desc: 'Setiap tindakan dicatat. Simpan catatan permanen tentang siapa yang melakukan apa dan kapan.',
+                title: 'Audit Trails',
+                desc: 'Setiap tindakan dicatat. Keep permanent records of siapa yang melakukan apa dan kapan.',
                  color: 'bg-indigo-500',
                 icon: (
                   <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -326,26 +326,26 @@ export function PublicCreateRequestPage() {
                     </p>
                 </div>
                 <div>
-                    <h3 className="text-sm font-semibold text-gray-100 tracking-wider uppercase mb-4">Produk</h3>
+                    <h3 className="text-sm font-semibold text-gray-100 tracking-wider uppercase mb-4">Product</h3>
                     <ul className="space-y-3 text-sm">
-                        <li><a href="#" className="hover:text-white transition-colors">Fitur</a></li>
-                        <li><a href="#" className="hover:text-white transition-colors">Harga</a></li>
-                        <li><a href="#" className="hover:text-white transition-colors">Keamanan</a></li>
+                        <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
+                        <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h3 className="text-sm font-semibold text-gray-100 tracking-wider uppercase mb-4">Perusahaan</h3>
+                    <h3 className="text-sm font-semibold text-gray-100 tracking-wider uppercase mb-4">Company</h3>
                      <ul className="space-y-3 text-sm">
-                        <li><a href="#" className="hover:text-white transition-colors">Tentang</a></li>
-                        <li><a href="#" className="hover:text-white transition-colors">Karir</a></li>
+                        <li><a href="#" className="hover:text-white transition-colors">About</a></li>
+                        <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
                         <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h3 className="text-sm font-semibold text-gray-100 tracking-wider uppercase mb-4">Hukum</h3>
+                    <h3 className="text-sm font-semibold text-gray-100 tracking-wider uppercase mb-4">Legal</h3>
                      <ul className="space-y-3 text-sm">
-                        <li><a href="#" className="hover:text-white transition-colors">Privasi</a></li>
-                        <li><a href="#" className="hover:text-white transition-colors">Syarat & Ketentuan</a></li>
+                        <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
+                        <li><a href="#" className="hover:text-white transition-colors">Terms & Conditions</a></li>
                     </ul>
                 </div>
             </div>
@@ -380,10 +380,10 @@ export function PublicCreateRequestPage() {
       {/* Pre-footer CTA */}
       <div className="bg-primary py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
-              <h2 className="text-3xl font-extrabold tracking-tight mb-4">Siap untuk memulai?</h2>
-              <p className="text-lg text-primary-100 mb-8 max-w-2xl mx-auto">Bergabunglah dengan ribuan tim yang telah meningkatkan waktu respon vendor mereka.</p>
+              <h2 className="text-3xl font-extrabold tracking-tight mb-4">Ready to start?</h2>
+              <p className="text-lg text-primary-100 mb-8 max-w-2xl mx-auto">Join ribuan teams yang sudah leveling up waktu respon vendor mereka.</p>
               <Link to="/login">
-                  <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-gray-50 border-none">Buat Akun Gratis</Button>
+                  <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-gray-50 border-none">Create Free Account</Button>
               </Link>
           </div>
       </div>

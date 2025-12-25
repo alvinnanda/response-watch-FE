@@ -53,8 +53,8 @@ export function PricingPage() {
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-gray-50 rounded-full blur-2xl opacity-50"></div>
                 <h3 className="text-lg font-semibold text-gray-900 uppercase tracking-wide">Starter</h3>
                 <div className="mt-4 flex items-baseline text-gray-900">
-                    <span className="text-4xl font-extrabold tracking-tight">$0</span>
-                    <span className="ml-1 text-xl font-medium text-gray-500">/mo</span>
+                    <span className="text-4xl font-extrabold tracking-tight">Rp. 0</span>
+                    <span className="ml-1 text-xl font-medium text-gray-500">/bulan</span>
                 </div>
                 <p className="mt-4 text-gray-500">Perfect for trying out ResponseWatch.</p>
                 
@@ -68,7 +68,7 @@ export function PricingPage() {
                            <span className="font-semibold text-gray-900">Unlimited*</span>
                         </span>
                     </li>
-                    {['Basic Dashboard', 'Email Notifications', '48h Link Validity'].map((feature, i) => (
+                    {['Basic Dashboard', 'Public Monitoring', '90-day History'].map((feature, i) => (
                         <li key={i} className="flex items-center">
                             <svg className="w-5 h-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -90,18 +90,18 @@ export function PricingPage() {
             <div className="bg-black rounded-3xl shadow-xl shadow-gray-200 border border-gray-900 p-8 relative overflow-hidden transform scale-105 z-10">
                 <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-gray-800 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
                 <div className="absolute top-4 right-8 inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold bg-white text-black uppercase tracking-wide">
-                    Most Popular
+                    Recommended
                 </div>
                 
                 <h3 className="text-lg font-semibold text-white uppercase tracking-wide">Pro</h3>
                 <div className="mt-4 flex items-baseline text-white">
-                    <span className="text-5xl font-extrabold tracking-tight">$19</span>
-                    <span className="ml-1 text-xl font-medium text-gray-400">/mo</span>
+                    <span className="text-5xl font-extrabold tracking-tight">Rp. 59.000</span>
+                    <span className="ml-1 text-xl font-medium text-gray-400">/bulan</span>
                 </div>
                 <p className="mt-4 text-gray-400">Unlimited power for growing teams.</p>
                 
                 <ul className="mt-8 space-y-4">
-                    {['Unlimited Requests', 'Advanced Analytics', 'Priority Support', 'Custom Branding', '90-day History', 'Multiple Team Members'].map((feature, i) => (
+                    {['All Starter Features','Unlimited Requests', 'No Spin Down','Advanced Analytics', 'Priority Support', 'Custom Branding', 'Multiple Team Members'].map((feature, i) => (
                         <li key={i} className="flex items-center">
                             <svg className="w-5 h-5 text-green-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -123,7 +123,7 @@ export function PricingPage() {
           {/* Enterprise CTA */}
           <div className="mt-16 text-center">
               <p className="text-gray-500">
-                  Need custom solutions? <a href="#" className="text-black font-semibold underline">Contact Sales</a>
+                  Need custom solutions? <a href="mailto:alvinnandad1@gmail.com" className="text-black font-semibold underline">Contact Sales</a>
               </p>
           </div>
         </div>
