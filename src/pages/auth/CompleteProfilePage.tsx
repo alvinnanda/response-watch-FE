@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button, Input, Card } from '../../components/ui';
 
@@ -9,6 +9,7 @@ export function CompleteProfilePage() {
 
   const [username, setUsername] = useState('');
   const [organization, setOrganization] = useState('');
+  const [isPublic, setIsPublic] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -38,7 +39,7 @@ export function CompleteProfilePage() {
 
     try {
       if (updateProfile) {
-        await updateProfile({ username, organization });
+        await updateProfile({ username, organization, is_public: isPublic });
         // After successful update, user should have organization, so we can redirect to dashboard
         navigate('/dashboard');
       } else {
@@ -98,6 +99,25 @@ export function CompleteProfilePage() {
               />
             </div>
 
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="is_public"
+                  name="is_public"
+                  type="checkbox"
+                  checked={isPublic}
+                  onChange={(e) => setIsPublic(e.target.checked)}
+                  className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="is_public" className="font-medium text-gray-700">
+                  Public Profile
+                </label>
+                <p className="text-gray-500">Allow anyone to view your public request monitoring page.</p>
+              </div>
+            </div>
+
             <Button 
               type="submit" 
               fullWidth 
@@ -108,6 +128,11 @@ export function CompleteProfilePage() {
             </Button>
           </form>
         </Card>
+        <div className="mt-12 text-center pb-8">
+          <Link to="/" className="text-xs font-bold text-gray-300 tracking-widest uppercase hover:text-gray-400 transition-colors">
+            ResponseWatch
+          </Link>
+        </div>
       </div>
     </div>
   );

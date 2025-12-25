@@ -213,7 +213,8 @@ export interface PublicMonitoringResponse {
  */
 export async function getPublicRequestsByUsername(
   username: string, 
-  params: { status?: string, page: number, limit: number, start_date?: string, end_date?: string }
+  params: { status?: string, page: number, limit: number, start_date?: string, end_date?: string },
+  signal?: AbortSignal
 ): Promise<PublicMonitoringResponse> {
   const query = new URLSearchParams();
   query.append('page', params.page.toString());
@@ -222,7 +223,7 @@ export async function getPublicRequestsByUsername(
   if (params.start_date) query.append('start_date', params.start_date);
   if (params.end_date) query.append('end_date', params.end_date);
 
-  const response = await fetch(`${API_BASE_URL}/public/monitoring/${username}?${query.toString()}`);
+  const response = await fetch(`${API_BASE_URL}/public/monitoring/${username}?${query.toString()}`, { signal });
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -230,4 +231,21 @@ export async function getPublicRequestsByUsername(
   }
 
   return response.json();
+}
+
+/**
+ * Get monitoring requests for the dashboard (authenticated)
+ */
+export async function getDashboardMonitoring(
+  params: { status?: string, page: number, limit: number, start_date?: string, end_date?: string },
+  signal?: AbortSignal
+): Promise<PublicMonitoringResponse> {
+  const query = new URLSearchParams();
+  query.append('page', params.page.toString());
+  query.append('limit', params.limit.toString());
+  if (params.status) query.append('status', params.status);
+  if (params.start_date) query.append('start_date', params.start_date);
+  if (params.end_date) query.append('end_date', params.end_date);
+
+  return authFetch<PublicMonitoringResponse>(`/requests/monitoring?${query.toString()}`, { signal });
 }

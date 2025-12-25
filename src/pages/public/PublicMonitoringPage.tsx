@@ -7,6 +7,7 @@ import { KanbanColumn } from './components/KanbanColumn';
 import { DateRangeFilter } from './components/DateRangeFilter';
 
 // Hook for managing a list of requests
+// Hook for managing a list of requests
 function useRequestList(username: string, status: string, startDate: string, endDate: string, enabled: boolean = true) {
   const [requests, setRequests] = useState<PublicRequest[]>([]);
   const [page, setPage] = useState(1);
@@ -18,6 +19,7 @@ function useRequestList(username: string, status: string, startDate: string, end
   const loadingRef = useRef(false);
   const hasMoreRef = useRef(true);
   const pageRef = useRef(1);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Sync refs with state
   useEffect(() => {
@@ -37,11 +39,22 @@ function useRequestList(username: string, status: string, startDate: string, end
 
   // Stable fetch function that reads from refs
   const fetchRequests = useCallback(async (isLoadMore: boolean = false) => {
+    // If it's a new fetch (not load more), cancel previous
+    if (!isLoadMore && abortControllerRef.current) {
+        abortControllerRef.current.abort();
+    }
+
     // Use refs to check current state to avoid stale closures
-    if (loadingRef.current) return;
+    if (loadingRef.current && isLoadMore) return;
     if (!hasMoreRef.current && isLoadMore) return;
     if (!enabled) return;
     
+    // Create new controller for this request
+    const controller = new AbortController();
+    if (!isLoadMore) {
+        abortControllerRef.current = controller;
+    }
+
     loadingRef.current = true;
     setLoading(true);
     
@@ -53,8 +66,11 @@ function useRequestList(username: string, status: string, startDate: string, end
         limit: 20,
         start_date: startDate,
         end_date: endDate
-      });
+      }, controller.signal);
       
+      // Check if aborted
+      if (controller.signal.aborted) return;
+
       setRequests(prev => {
          if (!isLoadMore) return data.requests;
          
@@ -74,10 +90,15 @@ function useRequestList(username: string, status: string, startDate: string, end
         pageRef.current = nextPage;
       }
     } catch (err) {
-      console.error('Failed to fetch requests:', err);
+      if ((err as Error).name !== 'AbortError') {
+          console.error('Failed to fetch requests:', err);
+      }
     } finally {
-      loadingRef.current = false;
-      setLoading(false);
+        // Only clear loading if this was the active request
+        if (!controller.signal.aborted) {
+            loadingRef.current = false;
+            setLoading(false);
+        }
     }
   }, [username, status, enabled, startDate, endDate]); // Stable dependencies only
 
@@ -86,8 +107,9 @@ function useRequestList(username: string, status: string, startDate: string, end
     if (!enabled) return;
     
     const filterKey = `${username}|${status}|${startDate}|${endDate}`;
-    if (lastFetchedFiltersRef.current === filterKey) return; // Already fetched with these filters
     
+    // In Strict Mode or rapid updates, we rely on AbortController to handle cancellation
+    // rather than just checking ref equal, though dedupe is still good.
     lastFetchedFiltersRef.current = filterKey;
     
     // Reset pagination for new filter
@@ -97,6 +119,12 @@ function useRequestList(username: string, status: string, startDate: string, end
     setHasMore(true);
     
     fetchRequests(false);
+
+    return () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+    }
   }, [enabled, username, status, startDate, endDate, fetchRequests]);
 
   // Polling for updates (every 30 seconds) - only for fresh data, not pagination

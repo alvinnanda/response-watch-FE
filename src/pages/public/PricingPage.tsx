@@ -95,7 +95,7 @@ export function PricingPage() {
                 
                 <h3 className="text-lg font-semibold text-white uppercase tracking-wide">Pro</h3>
                 <div className="mt-4 flex items-baseline text-white">
-                    <span className="text-5xl font-extrabold tracking-tight">Rp. 59.000</span>
+                    <span className="text-5xl font-extrabold tracking-tight">Rp. 49.000</span>
                     <span className="ml-1 text-xl font-medium text-gray-400">/bulan</span>
                 </div>
                 <p className="mt-4 text-gray-400">Unlimited power for growing teams.</p>

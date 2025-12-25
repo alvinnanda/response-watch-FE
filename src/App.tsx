@@ -7,6 +7,7 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { CreateRequestPage } from './pages/dashboard/CreateRequestPage';
 import { GroupsPage } from './pages/dashboard/GroupsPage';
+import { DashboardMonitoringPage } from './pages/dashboard/DashboardMonitoringPage';
 import { SmartLinkPage } from './pages/public/SmartLinkPage';
 import { PublicMonitoringPage } from './pages/public/PublicMonitoringPage';
 import { PublicCreateRequestPage } from './pages/public/PublicCreateRequestPage';
@@ -51,7 +52,8 @@ function App() {
                 <Route index element={<DashboardPage />} />
                 <Route path="create" element={<CreateRequestPage />} />
                 <Route path="groups" element={<GroupsPage />} />
-              </Route>
+                <Route path="monitoring" element={<DashboardMonitoringPage />} />
+              </Route>  
             </Route>
           </Route>
           
