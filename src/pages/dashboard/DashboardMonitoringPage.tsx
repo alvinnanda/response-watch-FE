@@ -1,17 +1,24 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import moment from 'moment';
 import { getDashboardMonitoring, type PublicRequest } from '../../api/requests';
 import { ActiveAgentsDashboard } from '../public/components/ActiveAgentsDashboard';
 import { KanbanColumn } from '../public/components/KanbanColumn';
 import { DateRangeFilter } from '../public/components/DateRangeFilter';
 
-// Hook for managing a list of requests
-function useRequestList(status: string, startDate: string, endDate: string) {
-  const [requests, setRequests] = useState<PublicRequest[]>([]);
+// Interface for status-grouped data
+interface StatusGroupedData {
+  waiting: { requests: PublicRequest[]; total: number };
+  in_progress: { requests: PublicRequest[]; total: number };
+  done: { requests: PublicRequest[]; total: number };
+}
+
+// Hook for managing all requests with a single API call
+function useAllRequests(startDate: string, endDate: string) {
+  const [allRequests, setAllRequests] = useState<PublicRequest[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [total, setTotal] = useState(0);
+  const [totalAll, setTotalAll] = useState(0);
   
   // Use refs for values that shouldn't trigger effect re-runs
   const loadingRef = useRef(false);
@@ -57,10 +64,10 @@ function useRequestList(status: string, startDate: string, endDate: string) {
     
     try {
       const currentPage = isLoadMore ? pageRef.current : 1;
+      // Fetch all statuses at once (no status filter)
       const data = await getDashboardMonitoring({
-        status,
         page: currentPage,
-        limit: 20,
+        limit: 60, // Fetch more since we're getting all statuses
         start_date: startDate,
         end_date: endDate
       }, controller.signal);
@@ -68,14 +75,14 @@ function useRequestList(status: string, startDate: string, endDate: string) {
       // Check if aborted (though await usually throws, but good to check)
       if (controller.signal.aborted) return;
 
-      setRequests(prev => {
+      setAllRequests(prev => {
          if (!isLoadMore) return data.requests;
          
          const newRequests = data.requests.filter(req => !prev.some(p => p.id === req.id));
          if (newRequests.length === 0) return prev;
          return [...prev, ...newRequests];
       });
-      setTotal(data.pagination.total);
+      setTotalAll(data.pagination.total);
       
       const noMore = data.pagination.page >= data.pagination.total_pages;
       setHasMore(!noMore);
@@ -97,11 +104,11 @@ function useRequestList(status: string, startDate: string, endDate: string) {
           setLoading(false);
       }
     }
-  }, [status, startDate, endDate]); 
+  }, [startDate, endDate]); 
 
   // Single effect for initial load and filter changes
   useEffect(() => {
-    const filterKey = `${status}|${startDate}|${endDate}`;
+    const filterKey = `${startDate}|${endDate}`;
     // In Strict Mode, this might run twice. 
     // If exact same filter, we can skip ONLY if we successfully fetched.
     // But since ref is reset on remount, we can't easily skip.
@@ -123,7 +130,7 @@ function useRequestList(status: string, startDate: string, endDate: string) {
             abortControllerRef.current.abort();
         }
     };
-  }, [status, startDate, endDate, fetchRequests]);
+  }, [startDate, endDate, fetchRequests]);
 
   // Polling for updates (every 30 seconds)
   useEffect(() => {
@@ -142,7 +149,26 @@ function useRequestList(status: string, startDate: string, endDate: string) {
     return () => clearInterval(interval);
   }, [fetchRequests]);
 
-  return { requests, loading, hasMore, total, loadMore: () => fetchRequests(true) };
+  // Group requests by status using useMemo for performance
+  const groupedData = useMemo<StatusGroupedData>(() => {
+    const waiting = allRequests.filter(r => r.status === 'waiting');
+    const in_progress = allRequests.filter(r => r.status === 'in_progress');
+    const done = allRequests.filter(r => r.status === 'done');
+    
+    return {
+      waiting: { requests: waiting, total: waiting.length },
+      in_progress: { requests: in_progress, total: in_progress.length },
+      done: { requests: done, total: done.length },
+    };
+  }, [allRequests]);
+
+  return { 
+    groupedData, 
+    loading, 
+    hasMore, 
+    totalAll,
+    loadMore: () => fetchRequests(true) 
+  };
 }
 
 
@@ -157,10 +183,34 @@ export function DashboardMonitoringPage() {
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   
-  // Lifted state for data requests
-  const waitingList = useRequestList('waiting', startDate, endDate);
-  const inProgressList = useRequestList('in_progress', startDate, endDate);
-  const doneList = useRequestList('done', startDate, endDate);
+  // Single API call for all statuses
+  const { groupedData, loading, hasMore, loadMore } = useAllRequests(startDate, endDate);
+  
+  // Extract data for each status - hasMore is false per column since we fetch all at once
+  const waitingList = { 
+    requests: groupedData.waiting.requests, 
+    loading: loading && groupedData.waiting.requests.length === 0, 
+    hasMore: false, 
+    total: groupedData.waiting.total, 
+    loadMore: () => {}
+  };
+  const inProgressList = { 
+    requests: groupedData.in_progress.requests, 
+    loading: loading && groupedData.in_progress.requests.length === 0, 
+    hasMore: false, 
+    total: groupedData.in_progress.total, 
+    loadMore: () => {}
+  };
+  const doneList = { 
+    requests: groupedData.done.requests, 
+    loading: loading && groupedData.done.requests.length === 0, 
+    hasMore: false, 
+    total: groupedData.done.total, 
+    loadMore: () => {}
+  };
+  
+  // Global load more function if there's more data to fetch
+  const handleLoadMore = hasMore ? loadMore : undefined;
   
   return (
     <div className="flex-1 flex flex-col font-sans h-full overflow-hidden">
@@ -233,6 +283,7 @@ export function DashboardMonitoringPage() {
               </div>
 
               {showKanban && (
+              <>
               <div className="flex-1 min-h-0 overflow-hidden">
                 {/* Desktop Grid */}
                 <div className="bg-transparent hidden md:grid grid-cols-3 gap-4 lg:gap-6 h-full">
@@ -302,6 +353,20 @@ export function DashboardMonitoringPage() {
                   )}
                 </div>
               </div>
+              
+              {/* Global Load More - for loading additional data across all columns */}
+              {handleLoadMore && (
+                <div className="flex justify-center py-4">
+                  <button 
+                    onClick={handleLoadMore}
+                    disabled={loading}
+                    className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Memuat...' : 'Muat Lebih Banyak'}
+                  </button>
+                </div>
+              )}
+              </>
               )}
           </div>
         </div>

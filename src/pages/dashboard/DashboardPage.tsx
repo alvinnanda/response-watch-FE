@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, Input } from '../../components/ui';
 import { getRequests, getRequestStats } from '../../api/requests';
@@ -358,8 +359,8 @@ export function DashboardPage() {
                             title="Copy Link"
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigator.clipboard.writeText(`${window.location.origin}/t/${request.url_token}`);
-                              alert('Link copied to clipboard!');
+                              navigator.clipboard.writeText(`${import.meta.env.VITE_SHARE_URL || window.location.origin}/share/${request.url_token}`);
+                              toast.success('Link copied to clipboard!');
                             }}
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

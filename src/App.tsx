@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { DashboardLayout } from './components/layout';
@@ -34,10 +35,13 @@ function RootRoute() {
   return <PublicCreateRequestPage />;
 }
 
+
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <Toaster position="bottom-right" richColors />
         <Routes>
           {/* Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
