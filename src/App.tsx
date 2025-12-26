@@ -14,6 +14,7 @@ import { PublicMonitoringPage } from './pages/public/PublicMonitoringPage';
 import { PublicCreateRequestPage } from './pages/public/PublicCreateRequestPage';
 import { PricingPage } from './pages/public/PricingPage';
 import { CompleteProfilePage } from './pages/auth/CompleteProfilePage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { RequireProfileCompletion } from './components/auth/RequireProfileCompletion';
 
 // Route component to handle root path logic
@@ -70,6 +71,10 @@ function App() {
           
           {/* Root Route: Logic is handled in RootRoute component */}
           <Route path="/" element={<RootRoute />} />
+          
+          {/* 404 Not Found */}
+          <Route path="/not-found" element={<NotFoundPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

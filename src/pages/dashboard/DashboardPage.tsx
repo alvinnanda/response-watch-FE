@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button, Card, Input } from '../../components/ui';
 import { getRequests, getRequestStats } from '../../api/requests';
 import type { Request, RequestStats, Pagination, RequestFilters } from '../../types/requests';
 import moment from 'moment';
 import { EditRequestModal } from '../../components/request/EditRequestModal';
+import { useAuth } from '../../contexts/AuthContext';
 
 const statusBadge = (status: string) => {
   const styles: Record<string, string> = {
@@ -46,6 +47,7 @@ export function DashboardPage() {
   const [showFilters, setShowFilters] = useState(window.innerWidth >= 640);
   const [editingRequest, setEditingRequest] = useState<Request | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Fetch requests
   const fetchRequests = useCallback(async () => {
@@ -98,6 +100,49 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6 sm:space-y-8">
+      {/* Public Monitoring Link */}
+      {user?.username && (
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-100 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800">Public Monitoring</h4>
+                <p className="text-xs text-gray-500">Share this link to let others view your request status</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Link 
+                to={`/m/${user.username}`}
+                target="_blank"
+                className="flex-1 sm:flex-initial px-4 py-2 text-sm font-medium text-indigo-600 bg-white hover:bg-indigo-50 border border-indigo-200 rounded-lg transition-colors text-center"
+              >
+                Open Monitor
+              </Link>
+              <Button
+                variant="primary"
+                size="sm"
+                className="flex-1 sm:flex-initial"
+                onClick={() => {
+                  const url = `${window.location.origin}/m/${user.username}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success('Public monitoring link copied!');
+                }}
+              >
+                <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Copy Link
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Stats Section */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">

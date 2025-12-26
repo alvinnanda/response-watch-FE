@@ -1,5 +1,5 @@
 // API functions for requests
-import { authFetch } from '../utils/api';
+import { authFetch, commonFetch } from '../utils/api';
 import type { RequestListResponse, RequestStats, RequestFilters, Request } from '../types/requests';
 
 /**
@@ -90,30 +90,26 @@ export async function createPublicRequest(data: {
   fingerprint: string;
   followup_link?: string;
 }): Promise<PublicCreateResponse> {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-  
-  const response = await fetch(`${API_BASE_URL}/public/requests`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    const error = new Error(errorData.message || 'Request failed') as Error & { 
-      status?: number; 
-      remaining_quota?: number;
-      reset_at?: string;
-    };
-    error.status = response.status;
-    error.remaining_quota = errorData.remaining_quota;
-    error.reset_at = errorData.reset_at;
-    throw error;
+  try {
+    return await commonFetch<PublicCreateResponse>('/public/requests', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  } catch (err: any) {
+    // Preserve the existing error structure for catch blocks that expect specific properties
+    if (err.data) {
+       const error = new Error(err.message) as Error & { 
+        status?: number; 
+        remaining_quota?: number;
+        reset_at?: string;
+      };
+      error.status = err.status;
+      error.remaining_quota = err.data.remaining_quota;
+      error.reset_at = err.data.reset_at;
+      throw error;
+    }
+    throw err;
   }
-
-  return response.json();
 }
 
 // =====================
@@ -138,56 +134,33 @@ export interface PublicRequest {
   pic_is_public?: boolean;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
 
 /**
  * Get public request by token (no auth required)
  */
 export async function getPublicRequest(token: string): Promise<PublicRequest> {
-  const response = await fetch(`${API_BASE_URL}/public/t/${token}`);
-  
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Request not found');
-  }
-  
-  return response.json();
+  return commonFetch<PublicRequest>(`/public/t/${token}`);
 }
 
 /**
  * Start response on a public request
  */
 export async function startPublicRequest(token: string, picName?: string): Promise<PublicRequest> {
-  const response = await fetch(`${API_BASE_URL}/public/t/${token}/start`, {
+  return commonFetch<PublicRequest>(`/public/t/${token}/start`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ pic_name: picName }),
   });
-  
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Failed to start response');
-  }
-  
-  return response.json();
 }
 
 /**
  * Finish/resolve a public request
  */
 export async function finishPublicRequest(token: string, picName?: string): Promise<PublicRequest> {
-  const response = await fetch(`${API_BASE_URL}/public/t/${token}/finish`, {
+  return commonFetch<PublicRequest>(`/public/t/${token}/finish`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ pic_name: picName }),
   });
-  
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Failed to finish response');
-  }
-  
-  return response.json();
 }
 
 /**
@@ -223,14 +196,10 @@ export async function getPublicRequestsByUsername(
   if (params.start_date) query.append('start_date', params.start_date);
   if (params.end_date) query.append('end_date', params.end_date);
 
-  const response = await fetch(`${API_BASE_URL}/public/monitoring/${username}?${query.toString()}`, { signal });
-  
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Failed to fetch requests');
-  }
-
-  return response.json();
+  return commonFetch<PublicMonitoringResponse>(
+    `/public/monitoring/${username}?${query.toString()}`,
+    { signal }
+  );
 }
 
 /**

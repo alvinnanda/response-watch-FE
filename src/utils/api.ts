@@ -1,3 +1,5 @@
+import { toast } from 'sonner';
+
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export class ApiError extends Error {
@@ -52,7 +54,19 @@ export async function commonFetch<T>(endpoint: string, options: FetchOptions = {
     },
   };
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  let response: Response;
+  let slowNetworkTimeout: ReturnType<typeof setTimeout> | undefined;
+
+  const timeoutId = setTimeout(() => {
+    toast.warning("Server is waking up... Upgrade to Pro for zero downtime.");
+  }, 8000); // 10s timeout for cold start detection
+
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  } finally {
+    clearTimeout(timeoutId);
+    if (slowNetworkTimeout) clearTimeout(slowNetworkTimeout);
+  }
 
   if (!response.ok) {
     let errorMessage = 'An error occurred';
@@ -65,6 +79,12 @@ export async function commonFetch<T>(endpoint: string, options: FetchOptions = {
     } catch (e) {
       // If response is not JSON, use status text
       errorMessage = response.statusText;
+    }
+
+    // Redirect to 404 page if resource not found, but exclude auth checks
+    if (response.status === 404 && !endpoint.includes('/auth/me')) {
+      window.location.href = '/not-found';
+      throw new ApiError(response.status, errorMessage, errorData);
     }
 
     throw new ApiError(response.status, errorMessage, errorData);

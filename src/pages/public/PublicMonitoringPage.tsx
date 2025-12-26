@@ -1,10 +1,35 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import moment from 'moment';
 import { getPublicRequestsByUsername, type PublicRequest } from '../../api/requests';
 import { ActiveAgentsDashboard } from './components/ActiveAgentsDashboard';
 import { KanbanColumn } from './components/KanbanColumn';
 import { DateRangeFilter } from './components/DateRangeFilter';
+
+// Hook to detect page visibility using useSyncExternalStore
+// This ensures React properly tracks visibility changes
+function usePageVisibility(): boolean {
+  const subscribe = useCallback((callback: () => void) => {
+    document.addEventListener('visibilitychange', callback);
+    window.addEventListener('focus', callback);
+    window.addEventListener('blur', callback);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', callback);
+      window.removeEventListener('focus', callback);
+      window.removeEventListener('blur', callback);
+    };
+  }, []);
+  
+  const getSnapshot = useCallback(() => {
+    // Page is visible if document is visible AND window has focus
+    return document.visibilityState === 'visible' && document.hasFocus();
+  }, []);
+
+  const getServerSnapshot = useCallback(() => true, []); // SSR fallback
+  
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
 
 // Interface for status-grouped data
 interface StatusGroupedData {
@@ -14,7 +39,7 @@ interface StatusGroupedData {
 }
 
 // Hook for managing all requests with a single API call
-function useAllRequests(username: string, startDate: string, endDate: string, enabled: boolean = true) {
+function useAllRequests(username: string, startDate: string, endDate: string, enabled: boolean = true, isPageVisible: boolean = true) {
   const [allRequests, setAllRequests] = useState<PublicRequest[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -26,6 +51,12 @@ function useAllRequests(username: string, startDate: string, endDate: string, en
   const hasMoreRef = useRef(true);
   const pageRef = useRef(1);
   const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // Ref to track visibility for use in interval callbacks (avoids stale closures)
+  const visibilityRef = useRef(isPageVisible);
+  useEffect(() => {
+    visibilityRef.current = isPageVisible;
+  }, [isPageVisible]);
 
   // Sync refs with state
   useEffect(() => {
@@ -109,8 +140,9 @@ function useAllRequests(username: string, startDate: string, endDate: string, en
   }, [username, enabled, startDate, endDate]); // Stable dependencies only
 
   // Single effect for initial load and filter changes
+  // Only fetch when page is visible
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !isPageVisible) return;
     
     const filterKey = `${username}|${startDate}|${endDate}`;
     
@@ -131,15 +163,16 @@ function useAllRequests(username: string, startDate: string, endDate: string, en
             abortControllerRef.current.abort();
         }
     }
-  }, [enabled, username, startDate, endDate, fetchRequests]);
+  }, [enabled, username, startDate, endDate, fetchRequests, isPageVisible]);
 
   // Polling for updates (every 30 seconds) - only for fresh data, not pagination
+  // Pause polling when page is not visible
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !isPageVisible) return;
     
     const interval = setInterval(() => {
-      // Only refresh if not currently loading
-      if (!loadingRef.current) {
+      // Use ref to get current visibility state (avoids stale closure)
+      if (!loadingRef.current && visibilityRef.current) {
         // Reset to fetch fresh first page
         pageRef.current = 1;
         setPage(1);
@@ -147,10 +180,42 @@ function useAllRequests(username: string, startDate: string, endDate: string, en
         setHasMore(true);
         fetchRequests(false);
       }
-    }, 30000);
+    }, 3000);
     
     return () => clearInterval(interval);
-  }, [enabled, fetchRequests]);
+  }, [enabled, fetchRequests, isPageVisible]);
+
+  // Track if page was ever hidden to prevent refresh on initial mount
+  const wasEverHiddenRef = useRef(false);
+  const prevVisibilityRef = useRef(isPageVisible);
+
+  // Refresh data when page becomes visible again (only after being hidden)
+  useEffect(() => {
+    // Track when page becomes hidden
+    if (!isPageVisible) {
+      wasEverHiddenRef.current = true;
+    }
+    
+    // Only refresh if:
+    // 1. Page is now visible
+    // 2. Page was previously hidden (not initial render)
+    // 3. We have data to refresh
+    const wasHidden = prevVisibilityRef.current === false;
+    const shouldRefresh = isPageVisible && wasHidden && wasEverHiddenRef.current && allRequests.length > 0;
+    
+    // Update previous visibility
+    prevVisibilityRef.current = isPageVisible;
+    
+    if (!enabled || !shouldRefresh) return;
+    
+    // Reset to fetch fresh first page
+    pageRef.current = 1;
+    setPage(1);
+    hasMoreRef.current = true;
+    setHasMore(true);
+    fetchRequests(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPageVisible]); // Only trigger on visibility change
 
   // Group requests by status using useMemo for performance
   const groupedData = useMemo<StatusGroupedData>(() => {
@@ -181,14 +246,17 @@ export function PublicMonitoringPage() {
   const [showOverview, setShowOverview] = useState(false);
   const [showKanban, setShowKanban] = useState(true);
   
+  // Track page visibility to pause/resume fetching
+  const isPageVisible = usePageVisibility();
+  
   // Date filter with defaults: today for both start and end
   const today = moment().format('YYYY-MM-DD');
   const minDate = moment().subtract(90, 'days').format('YYYY-MM-DD');
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   
-  // Single API call for all statuses
-  const { groupedData, loading, hasMore, loadMore } = useAllRequests(username || '', startDate, endDate, true);
+  // Single API call for all statuses - passes visibility to pause fetching when hidden
+  const { groupedData, loading, hasMore, loadMore } = useAllRequests(username || '', startDate, endDate, true, isPageVisible);
   
   // Extract data for each status - hasMore is false per column since we fetch all at once
   // The global hasMore/loadMore is used for the main container if needed
@@ -221,10 +289,16 @@ export function PublicMonitoringPage() {
 
   const [currentTime, setCurrentTime] = useState(moment());
 
+  // Update clock only when page is visible
   useEffect(() => {
+    if (!isPageVisible) return;
+    
+    // Update time immediately when becoming visible
+    setCurrentTime(moment());
+    
     const interval = setInterval(() => setCurrentTime(moment()), 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isPageVisible]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100 flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900 relative overflow-hidden">
