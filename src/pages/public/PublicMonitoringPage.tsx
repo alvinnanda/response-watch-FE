@@ -1,35 +1,11 @@
-import { useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import moment from 'moment';
 import { getPublicRequestsByUsername, type PublicRequest } from '../../api/requests';
 import { ActiveAgentsDashboard } from './components/ActiveAgentsDashboard';
 import { KanbanColumn } from './components/KanbanColumn';
 import { DateRangeFilter } from './components/DateRangeFilter';
-
-// Hook to detect page visibility using useSyncExternalStore
-// This ensures React properly tracks visibility changes
-function usePageVisibility(): boolean {
-  const subscribe = useCallback((callback: () => void) => {
-    document.addEventListener('visibilitychange', callback);
-    window.addEventListener('focus', callback);
-    window.addEventListener('blur', callback);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', callback);
-      window.removeEventListener('focus', callback);
-      window.removeEventListener('blur', callback);
-    };
-  }, []);
-  
-  const getSnapshot = useCallback(() => {
-    // Page is visible if document is visible AND window has focus
-    return document.visibilityState === 'visible' && document.hasFocus();
-  }, []);
-
-  const getServerSnapshot = useCallback(() => true, []); // SSR fallback
-  
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-}
+import { usePageVisibility } from '../../hooks/usePageVisibility';
 
 // Interface for status-grouped data
 interface StatusGroupedData {
@@ -180,7 +156,7 @@ function useAllRequests(username: string, startDate: string, endDate: string, en
         setHasMore(true);
         fetchRequests(false);
       }
-    }, 3000);
+    }, 30000);
     
     return () => clearInterval(interval);
   }, [enabled, fetchRequests, isPageVisible]);
