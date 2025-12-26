@@ -31,11 +31,16 @@ const linkifyText = (text: string) => {
 };
 
 const ShareButton = () => {
+  const { token } = useParams<{ token: string }>();
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      // Use configured VITE_SHARE_URL for static page
+      const shareBaseUrl = import.meta.env.VITE_SHARE_URL || 'https://responsewatch.onrender.com';
+      const shareUrl = `${shareBaseUrl}/share/${token}`;
+      
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 800);
     } catch (err) {
@@ -173,8 +178,23 @@ export function SmartLinkPage() {
     return moment.utc(seconds * 1000).format('HH:mm:ss');
   };
 
-  const formatDisplayTime = (isoString: string) => {
-    return moment(isoString).format('HH:mm');
+  const formatDurationHuman = (totalSeconds: number) => {
+    if (totalSeconds < 60) return `${totalSeconds} detik`;
+    
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const days = Math.floor(totalSeconds / 86400);
+
+    const weeks = Math.floor(days / 7);
+    const remainingDays = days % 7;
+
+    const parts = [];
+    if (weeks > 0) parts.push(`${weeks} minggu`);
+    if (remainingDays > 0) parts.push(`${remainingDays} hari`);
+    if (hours > 0) parts.push(`${hours} jam`);
+    if (minutes > 0) parts.push(`${minutes} menit`);
+
+    return parts.join(' ');
   };
 
   // Loading state
@@ -243,7 +263,7 @@ export function SmartLinkPage() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full shadow-sm text-sm font-medium text-primary hover:bg-gray-50 hover:border-primary/30 transition-all group"
             >
-              <span>Buka Tautan Tindak Lanjut</span>
+              <span>Follow-up Link</span>
               <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
@@ -287,7 +307,7 @@ export function SmartLinkPage() {
                   {actionLoading ? 'Memulai...' : 'Mulai Pengerjaan'}
                 </Button>
                 <p className="text-xs text-gray-400 mt-4">
-                  Mengklik mulai akan memberi tahu pemilik dan memulai penghitung waktu.
+                  Dengan mengklik tombol di atas, pemilik akan menerima pemberitahuan dan penghitung waktu akan dimulai secara otomatis.
                 </p>
               </div>
             </div>
@@ -356,7 +376,7 @@ export function SmartLinkPage() {
                   <div className="w-4 h-4 mt-1 rounded-full bg-gray-300 ring-4 ring-white shadow-sm shrink-0"></div>
                   <div>
                     <p className="text-sm font-bold text-gray-900">Permintaan Dibuat</p>
-                    <p className="text-xs text-gray-500 mt-0.5 font-mono">{formatDisplayTime(request.created_at)}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{moment(request.created_at).format('D MMM YYYY, HH:mm')}</p>
                   </div>
                 </div>
                 
@@ -368,7 +388,7 @@ export function SmartLinkPage() {
                       <span className="text-xs text-gray-500">Oleh {request.start_pic || selectedPic || 'PIC'}.</span>
                       {request.response_time_seconds && (
                         <p className="text-xs text-gray-500 mt-0.5">
-                          Waktu Respons: <span className="font-mono text-gray-700 font-medium">{formatDuration(request.response_time_seconds)}</span>
+                          Waktu Respons: <span className="text-gray-700 font-medium">{formatDurationHuman(request.response_time_seconds)}</span>
                         </p>
                       )}
                     </div>
@@ -380,7 +400,7 @@ export function SmartLinkPage() {
                   <div>
                     <p className="text-sm font-bold text-gray-900">Masalah Teratasi</p>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      Total durasi: <span className="font-mono text-gray-700 font-medium">{formatDuration(elapsedTime)}</span>
+                      Total durasi: <span className="text-gray-700 font-medium">{formatDurationHuman(elapsedTime)}</span>
                     </p>
                   </div>
                 </div>

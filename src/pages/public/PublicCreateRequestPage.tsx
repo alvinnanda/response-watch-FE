@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CreateRequestForm } from '../../components/request/CreateRequestForm';
-import { Card, Button } from '../../components/ui';
+import { Card, Button, Modal } from '../../components/ui';
 import { createPublicRequest } from '../../api/requests';
 import { getDeviceFingerprint } from '../../utils/fingerprint';
 
@@ -114,7 +114,7 @@ export function PublicCreateRequestPage() {
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600 xl:inline">simplified.</span>
               </h1>
               <p className="mt-6 text-xl text-gray-500 sm:mt-8 sm:max-w-xl sm:mx-auto md:text-xl lg:mx-0 leading-relaxed">
-                Create shareable tracking links dalam hitungan detik. Vendor kamu nggak perlu login. Dapatkan real-time updates dan stop chasing emails manual.
+                Buat shareable tracking links dalam hitungan detik. Vendor kamu nggak perlu login. Dapatkan real-time updates dan stop chasing emails manual.
               </p>
               
               {/* <div className="mt-8 border-t border-gray-100 pt-8 hidden lg:block">
@@ -124,60 +124,22 @@ export function PublicCreateRequestPage() {
           </div>
           
           <div className="mt-12 lg:mt-0 lg:col-span-5 relative z-10">
-            {successToken ? (
-               <Card padding="lg" className="w-full h-full flex flex-col items-center justify-center text-center p-10 bg-white border-green-100 shadow-xl ring-1 ring-black/5">
-                <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6 animate-bounce-slow">
-                  <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Request Created!</h3>
-                <p className="text-gray-600 mb-4 max-w-xs mx-auto">
-                  Tracking link kamu ready. Share langsung ke vendor atau stakeholders kamu.
-                </p>
-                {remainingQuota !== null && (
-                  <p className="text-sm text-gray-500 mb-4">
-                    {remainingQuota > 0 
-                      ? `${remainingQuota} free requests left this month`
-                      : 'Ini last free request kamu. Login for unlimited access.'}
-                  </p>
-                )}
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 w-full mb-8 text-sm font-mono text-gray-800 break-all select-all flex items-center justify-between group cursor-pointer hover:border-primary/50 transition-colors"
-                  onClick={() => navigator.clipboard.writeText(`${window.location.origin}/t/${successToken}`)}>
-                  <span className="truncate mr-2">{window.location.origin}/t/{successToken}</span>
-                  <svg className="w-5 h-5 text-gray-400 group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                </div>
-                <div className="space-y-3 w-full">
-                    <Button 
-                      onClick={() => setSuccessToken(null)}
-                      fullWidth
-                    >
-                      Create Another
-                    </Button>
-                    <Link to="/login" className="block w-full">
-                        <Button variant="outline" fullWidth>Login for Unlimited</Button>
-                    </Link>
-                </div>
-               </Card>
-            ) : error ? (
-                <Card padding="lg" className="w-full h-full flex flex-col items-center justify-center text-center p-10 bg-white border-red-100 shadow-xl ring-1 ring-black/5">
-                  <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
-                    <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Quota Exceeded</h3>
-                  <p className="text-gray-600 mb-6 max-w-xs mx-auto">{error}</p>
-                  <div className="space-y-3 w-full">
-                    <Link to="/login" className="block w-full">
-                      <Button fullWidth>Login for Unlimited Access</Button>
-                    </Link>
-                    <Button variant="outline" fullWidth onClick={() => setError(null)}>
-                      Try Again
-                    </Button>
-                  </div>
+            {error && (
+                <Card padding="lg" className="w-full mb-6 flex flex-col items-center justify-center text-center p-6 bg-white border-red-100 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-4">
+                   <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-3">
+                     <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                     </svg>
+                   </div>
+                   <h3 className="text-lg font-bold text-gray-900 mb-1">Error</h3>
+                   <p className="text-gray-600 mb-4 text-sm">{error}</p>
+                   <Button variant="outline" size="sm" onClick={() => setError(null)}>
+                       Dismiss
+                   </Button>
                 </Card>
-            ) : (
+            )}
+
+            <div className={`transition-all duration-300 ${successToken ? 'blur-sm pointer-events-none' : ''}`}>
                 <div className="relative">
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-purple-600 rounded-2xl blur opacity-20 transform rotate-1"></div>
                     <div className="relative bg-white rounded-xl shadow-2xl ring-1 ring-gray-900/5">
@@ -187,13 +149,15 @@ export function PublicCreateRequestPage() {
                         </div>
                         <div className="p-6">
                             <CreateRequestForm 
+                                // Key forces component remount (reset) when successToken changes/clears
+                                key={successToken ? 'submitted' : 'new'} 
                                 onSubmit={handleSubmit}
                                 isLoading={isLoading}
                             />
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
           </div>
           
           <div className="mt-16 lg:hidden border-t border-gray-100 pt-8 text-center bg-white/50 backdrop-blur-sm -mx-4 px-4 pb-8">
@@ -201,6 +165,70 @@ export function PublicCreateRequestPage() {
           </div>
         </div>
       </div>
+
+       {/* Success Modal */}
+       <Modal
+          isOpen={!!successToken}
+          onClose={() => setSuccessToken(null)}
+          title="🎉 Request Created!"
+          width="md"
+       >
+         <div className="text-center">
+            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce-slow">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            
+            <p className="text-gray-600 mb-6 font-medium">
+              Tracking link kamu siap! Share ke vendor untuk mulai tracking.
+            </p>
+
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 w-full mb-6 flex items-center justify-between group relative">
+                <div className="text-sm font-mono text-gray-800 break-all text-left flex-1 mr-2 px-1">
+                    {`${import.meta.env.VITE_SHARE_URL || window.location.origin}/share/${successToken}`}
+                </div>
+                <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="shrink-0"
+                    onClick={() => {
+                        const shareUrl = `${import.meta.env.VITE_SHARE_URL || window.location.origin}/share/${successToken}`;
+                        navigator.clipboard.writeText(shareUrl);
+                        // Add toast or visual feedback here if needed, Button usually has ripple
+                    }}
+                >
+                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                  Copy
+                </Button>
+            </div>
+
+            {remainingQuota !== null && (
+                 <p className="text-xs text-center text-gray-500 mb-6 bg-blue-50 py-2 rounded border border-blue-100">
+                    You have <span className="font-bold text-blue-700">{remainingQuota}</span> free requests remaining this month.
+                 </p>
+            )}
+
+            <div className="flex gap-3">
+               <Button 
+                   onClick={() => setSuccessToken(null)}
+                   fullWidth
+                   variant="outline"
+               >
+                   Close
+               </Button>
+               <Button 
+                   onClick={() => {
+                       const shareUrl = `${import.meta.env.VITE_SHARE_URL || window.location.origin}/t/${successToken}`;
+                       window.open(shareUrl, '_blank');
+                   }}
+                   fullWidth
+               >
+                   Open Link
+               </Button>
+            </div>
+         </div>
+       </Modal>
     </div>
   );
 
