@@ -4,6 +4,8 @@ import { CreateRequestForm } from '../../components/request/CreateRequestForm';
 import { createRequest } from '../../api/requests';
 import { getGroups, type VendorGroup } from '../../api/groups';
 
+import type { InitialNoteData } from '../../components/request/CreateRequestForm';
+
 export function CreateRequestPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +50,13 @@ export function CreateRequestPage() {
     subLabel: `${g.pic_names.length} PICs`
   }));
 
-  const handleSubmit = async (data: { title: string; description: string; followupLink: string; vendorGroupId?: string }) => {
+  const handleSubmit = async (data: { 
+      title: string; 
+      description: string; 
+      followupLink: string; 
+      vendorGroupId?: string; 
+      initialNote?: InitialNoteData
+  }) => {
     setIsLoading(true);
     setError('');
     
@@ -61,12 +69,30 @@ export function CreateRequestPage() {
     }
 
     try {
-      await createRequest({
+      const newRequest = await createRequest({
         title: data.title,
         description: data.description || undefined,
         followup_link: data.followupLink || undefined,
         embedded_pic_list: embeddedPicList,
       });
+
+      // Chain Creation: If initial note exists, create it
+      if (data.initialNote && newRequest.uuid) {
+          try {
+              // We need to import createNote first. I'll assume it's imported or I will add the import.
+              await import('../../api/notes').then(mod => mod.createNote({
+                  title: data.initialNote!.title,
+                  content: data.initialNote!.content,
+                  tagline: data.initialNote!.tagline,
+                  background_color: data.initialNote!.background_color,
+                  is_reminder: false,
+                  request_uuid: newRequest.uuid
+              }));
+          } catch (noteErr) {
+              console.error("Failed to create initial note", noteErr);
+          }
+      }
+
       navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create request');

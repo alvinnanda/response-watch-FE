@@ -10,6 +10,7 @@ export interface Note {
   webhook_payload?: string;
   background_color?: string;
   tagline?: string;
+  request_uuid?: string;
   created_at: string;
   updated_at: string;
 }
@@ -20,12 +21,14 @@ export interface NoteFilters {
   search?: string;
   start_date?: string;
   end_date?: string;
+  request_uuid?: string;
 }
 
 export interface Pagination {
   total: number;
   page: number;
   limit: number;
+  resolve_count?: number;
 }
 
 export interface NoteListResponse {
@@ -43,6 +46,7 @@ export interface CreateNoteRequest {
   webhook_payload?: string;
   background_color?: string;
   tagline?: string;
+  request_uuid?: string;
 }
 
 export interface UpdateNoteRequest extends CreateNoteRequest {}

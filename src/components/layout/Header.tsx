@@ -72,9 +72,9 @@ export function Header() {
           {/* Navigation - Desktop */}
           <nav className="hidden md:flex items-center gap-1">
             {[
+              { path: '/dashboard/create', label: 'Buat Permintaan' },
               { path: '/dashboard/notes', label: 'Notes' },
               { path: '/dashboard/monitoring', label: 'Monitoring' },
-              { path: '/dashboard/create', label: 'Buat Permintaan' },
               { path: '/dashboard/groups', label: 'Grup' }
             ].map((item) => (
               <Link

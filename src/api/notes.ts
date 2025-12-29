@@ -8,6 +8,7 @@ export const getNotes = async (filters: NoteFilters = {}): Promise<NoteListRespo
   if (filters.search) queryParams.append('search', filters.search);
   if (filters.start_date) queryParams.append('start_date', filters.start_date);
   if (filters.end_date) queryParams.append('end_date', filters.end_date);
+  if (filters.request_uuid) queryParams.append('request_uuid', filters.request_uuid);
 
   return await commonFetch<NoteListResponse>(`/notes?${queryParams.toString()}`);
 };

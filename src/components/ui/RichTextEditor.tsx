@@ -54,7 +54,7 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write something
     ],
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[150px] p-4',
+        class: 'prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[95%] p-2',
       },
     },
     content: value,
@@ -148,7 +148,7 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write something
   );
 
   return (
-    <div className={`rounded-lg overflow-hidden flex flex-col focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all ${(className || '').includes('border') ? '' : 'border border-gray-300'} ${className || ''}`}>
+    <div className={`rounded-lg overflow-hidden flex flex-col focus-within:ring-2 focus-within:ring-primary/50 focus-within:ring-inset transition-all ${(className || '').includes('border') ? '' : 'border border-gray-300'} ${className || ''}`}>
       {/* Toolbar */}
       <div 
         className={`flex flex-wrap items-center gap-1 shrink-0 px-3 py-2 border-b border-gray-100 bg-gray-50/50 transition-opacity duration-300 ${editor.isFocused ? 'opacity-100' : 'opacity-0 pointer-events-none h-0 py-0 border-none overflow-hidden'}`}
