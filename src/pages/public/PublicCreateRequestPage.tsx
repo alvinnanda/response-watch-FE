@@ -1,15 +1,17 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CreateRequestForm } from '../../components/request/CreateRequestForm';
-import { Card, Button, Modal } from '../../components/ui';
+import { Button, Modal } from '../../components/ui';
 import { createPublicRequest } from '../../api/requests';
 import { getDeviceFingerprint } from '../../utils/fingerprint';
+import { Footer } from '../../components/public/Footer';
+import { toast } from 'sonner';
 
 export function PublicCreateRequestPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [successToken, setSuccessToken] = useState<string | null>(null);
   const [remainingQuota, setRemainingQuota] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [fingerprint, setFingerprint] = useState<string>('');
 
   // Load fingerprint on mount
@@ -17,13 +19,10 @@ export function PublicCreateRequestPage() {
     getDeviceFingerprint().then(setFingerprint);
   }, []);
 
-
-
   const navigate = useNavigate();
 
   const handleSubmit = async (data: { title: string; description: string; followupLink: string; vendorGroupId?: string }) => {
     setIsLoading(true);
-    setError(null);
     
     try {
       const response = await createPublicRequest({
@@ -40,7 +39,7 @@ export function PublicCreateRequestPage() {
       if (error.status === 429) {
         navigate('/pricing?limit_reached=true');
       } else {
-        setError(error.message || 'Failed to create request');
+        toast.error(error.message || 'Failed to create request');
       }
     } finally {
       setIsLoading(false);
@@ -124,20 +123,6 @@ export function PublicCreateRequestPage() {
           </div>
           
           <div className="mt-12 lg:mt-0 lg:col-span-5 relative z-10">
-            {error && (
-                <Card padding="lg" className="w-full mb-6 flex flex-col items-center justify-center text-center p-6 bg-white border-red-100 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-4">
-                   <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-3">
-                     <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                     </svg>
-                   </div>
-                   <h3 className="text-lg font-bold text-gray-900 mb-1">Error</h3>
-                   <p className="text-gray-600 mb-4 text-sm">{error}</p>
-                   <Button variant="outline" size="sm" onClick={() => setError(null)}>
-                       Dismiss
-                   </Button>
-                </Card>
-            )}
 
             <div className={`transition-all duration-300 ${successToken ? 'blur-sm pointer-events-none' : ''}`}>
                 <div className="relative">
@@ -341,59 +326,6 @@ export function PublicCreateRequestPage() {
         </div>
       </div>
     </div>
-  );
-
-  const Footer = () => (
-    <footer className="bg-gray-900 text-gray-300 border-t border-gray-800">
-        <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-                <div className="col-span-2 md:col-span-1">
-                    <span className="text-2xl font-bold text-white tracking-tight">ResponseWatch</span>
-                    <p className="mt-4 text-sm text-gray-400">
-                        Making vendor communication simple, transparent, and efficient for modern teams.
-                    </p>
-                </div>
-                <div>
-                    <h3 className="text-sm font-semibold text-gray-100 tracking-wider uppercase mb-4">Product</h3>
-                    <ul className="space-y-3 text-sm">
-                        <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                        <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                        <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 className="text-sm font-semibold text-gray-100 tracking-wider uppercase mb-4">Company</h3>
-                     <ul className="space-y-3 text-sm">
-                        <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                        <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                        <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 className="text-sm font-semibold text-gray-100 tracking-wider uppercase mb-4">Legal</h3>
-                     <ul className="space-y-3 text-sm">
-                        <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-                        <li><a href="#" className="hover:text-white transition-colors">Terms & Conditions</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center bg-gray-900">
-                <p className="text-xs text-gray-500">
-                  &copy; {new Date().getFullYear()} ResponseWatch. All rights reserved.
-                </p>
-                <div className="flex space-x-6 mt-4 md:mt-0">
-                    <a href="#" className="text-gray-400 hover:text-white">
-                        <span className="sr-only">Twitter</span>
-                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" /></svg>
-                    </a>
-                    <a href="#" className="text-gray-400 hover:text-white">
-                        <span className="sr-only">GitHub</span>
-                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" /></svg>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </footer>
   );
 
   return (

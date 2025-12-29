@@ -82,10 +82,10 @@ export async function commonFetch<T>(endpoint: string, options: FetchOptions = {
     }
 
     // Redirect to 404 page if resource not found, but exclude auth checks
-    if (response.status === 404 && !endpoint.includes('/auth/me')) {
-      window.location.href = '/not-found';
-      throw new ApiError(response.status, errorMessage, errorData);
-    }
+    // if (response.status === 404 && !endpoint.includes('/auth/me')) {
+    //   window.location.href = '/not-found';
+    //   throw new ApiError(response.status, errorMessage, errorData);
+    // }
 
     throw new ApiError(response.status, errorMessage, errorData);
   }

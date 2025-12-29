@@ -9,9 +9,11 @@ import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { CreateRequestPage } from './pages/dashboard/CreateRequestPage';
 import { GroupsPage } from './pages/dashboard/GroupsPage';
 import { DashboardMonitoringPage } from './pages/dashboard/DashboardMonitoringPage';
+import { NotesPage } from './pages/dashboard/NotesPage';
 import { SmartLinkPage } from './pages/public/SmartLinkPage';
 import { PublicMonitoringPage } from './pages/public/PublicMonitoringPage';
 import { PublicCreateRequestPage } from './pages/public/PublicCreateRequestPage';
+import { PublicRequestFormPage } from './pages/public/PublicRequestFormPage';
 import { PricingPage } from './pages/public/PricingPage';
 import { CompleteProfilePage } from './pages/auth/CompleteProfilePage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -57,6 +59,7 @@ function App() {
                 <Route index element={<DashboardPage />} />
                 <Route path="create" element={<CreateRequestPage />} />
                 <Route path="groups" element={<GroupsPage />} />
+                <Route path="notes" element={<NotesPage />} />
                 <Route path="monitoring" element={<DashboardMonitoringPage />} />
               </Route>  
             </Route>
@@ -67,6 +70,7 @@ function App() {
           <Route path="/t/:token" element={<SmartLinkPage />} />
           <Route path="/pricing" element={<PricingPage />} />
         <Route path="/m/:username" element={<PublicMonitoringPage />} />
+        <Route path="/f/:username" element={<PublicRequestFormPage />} />
           <Route path="/landing-page" element={<PublicCreateRequestPage />} />
           
           {/* Root Route: Logic is handled in RootRoute component */}

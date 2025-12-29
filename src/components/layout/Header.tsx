@@ -72,6 +72,7 @@ export function Header() {
           {/* Navigation - Desktop */}
           <nav className="hidden md:flex items-center gap-1">
             {[
+              { path: '/dashboard/notes', label: 'Notes' },
               { path: '/dashboard/monitoring', label: 'Monitoring' },
               { path: '/dashboard/create', label: 'Buat Permintaan' },
               { path: '/dashboard/groups', label: 'Grup' }
@@ -222,7 +223,8 @@ export function Header() {
                 {[
                   { path: '/dashboard/monitoring', label: 'Monitoring' },
                   { path: '/dashboard/create', label: 'Buat Permintaan' },
-                  { path: '/dashboard/groups', label: 'Grup' }
+                  { path: '/dashboard/groups', label: 'Grup' },
+                  { path: '/dashboard/notes', label: 'Notes' }
                 ].map((item) => (
                   <Link
                     key={item.path}

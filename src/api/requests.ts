@@ -112,6 +112,22 @@ export async function createPublicRequest(data: {
   }
 }
 
+/**
+ * Create a public request for a specific user (no auth required)
+ */
+export interface CreatePublicRequestResponse {
+    request: Request;
+    remaining_quota: number;
+}
+  
+export const createPublicRequestForUser = async (username: string, data: { title: string; description?: string; followup_link?: string; fingerprint: string }) => {
+  const response = await commonFetch<CreatePublicRequestResponse>(`/public/requests/${username}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+  });
+  return response;
+};
+
 // =====================
 // Public SmartLink API
 // =====================

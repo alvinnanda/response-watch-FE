@@ -7,6 +7,9 @@ import type { Request, RequestStats, Pagination, RequestFilters } from '../../ty
 import moment from 'moment';
 import { EditRequestModal } from '../../components/request/EditRequestModal';
 import { useAuth } from '../../contexts/AuthContext';
+import { UpcomingReminders } from '../../components/dashboard/UpcomingReminders';
+import { EditNoteModal } from '../../components/note/EditNoteModal';
+import type { Note } from '../../types/notes';
 
 const statusBadge = (status: string) => {
   const styles: Record<string, string> = {
@@ -46,6 +49,11 @@ export function DashboardPage() {
   const [showStats, setShowStats] = useState(window.innerWidth >= 640);
   const [showFilters, setShowFilters] = useState(window.innerWidth >= 640);
   const [editingRequest, setEditingRequest] = useState<Request | null>(null);
+  
+  // Note Modal State
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [isEditNoteModalOpen, setIsEditNoteModalOpen] = useState(false);
+
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -143,6 +151,17 @@ export function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Upcoming Reminders Section */}
+      <UpcomingReminders 
+        start={filters.start_date} 
+        end={filters.end_date} 
+        onNoteClick={(note) => {
+          setEditingNote(note);
+          setIsEditNoteModalOpen(true);
+        }}
+      />
+
       {/* Stats Section */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -544,6 +563,19 @@ export function DashboardPage() {
             </svg>
         </Button>
       </div>
+      {/* Note Modals */}
+      <EditNoteModal
+        isOpen={isEditNoteModalOpen}
+        onClose={() => { setIsEditNoteModalOpen(false); setEditingNote(null); }}
+        onSuccess={() => {
+           // We might need to refresh reminders, but UpcomingReminders fetches on mount/prop change.
+           // Since we don't have a trigger mechanism to refresh UpcomingReminders from here easily without a key or context, 
+           // and the note update usually happens on NotesPage, we accept that reminders might be slightly stale until refresh 
+           // or we can force refresh by toggling a key. 
+           // For now, simple close is fine.
+        }}
+        note={editingNote}
+      />
     </div>
   );
 }

@@ -22,11 +22,13 @@ const shadowClasses = {
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ padding = 'lg', shadow = 'lg', className = '', children, ...props }, ref) => {
+    const hasBg = className.includes('bg-') || className.includes('from-');
+    
     return (
       <div
         ref={ref}
         className={`
-          bg-white rounded-2xl border border-gray-100/50
+          ${hasBg ? '' : 'bg-white'} rounded-2xl border border-gray-100/50
           transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl
           ${paddingClasses[padding]}
           ${shadowClasses[shadow as keyof typeof shadowClasses || 'lg']}
