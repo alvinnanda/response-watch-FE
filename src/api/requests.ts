@@ -36,11 +36,29 @@ export async function createRequest(data: {
   description?: string;
   embedded_pic_list?: string[];
   followup_link?: string;
+  is_description_secure?: boolean;
+  description_pin?: string;
 }): Promise<Request> {
-  return authFetch<Request>('/requests', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
+  try {
+    return await authFetch<Request>('/requests', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  } catch (err: any) {
+    if (err.status === 429 || err.status === 403) {
+      // Re-throw with plan data if available
+      const error = new Error(err.message) as Error & { 
+        status?: number; 
+        current_plan?: string;
+      };
+      error.status = err.status;
+      if (err.data && err.data.current_plan) {
+        error.current_plan = err.data.current_plan;
+      }
+      throw error;
+    }
+    throw err;
+  }
 }
 
 /**
@@ -148,6 +166,7 @@ export interface PublicRequest {
   duration_seconds?: number;
   response_time_seconds?: number;
   pic_is_public?: boolean;
+  is_description_secure: boolean;
 }
 
 
@@ -176,6 +195,16 @@ export async function finishPublicRequest(token: string, picName?: string): Prom
   return commonFetch<PublicRequest>(`/public/t/${token}/finish`, {
     method: 'POST',
     body: JSON.stringify({ pic_name: picName }),
+  });
+}
+
+/**
+ * Verify PIN for secured description
+ */
+export async function verifyDescriptionPin(token: string, pin: string): Promise<{ success: boolean; description?: string }> {
+  return commonFetch<{ success: boolean; description?: string }>(`/public/t/${token}/verify-pin`, {
+    method: 'POST',
+    body: JSON.stringify({ pin }),
   });
 }
 

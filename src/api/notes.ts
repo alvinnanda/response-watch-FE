@@ -1,4 +1,4 @@
-import { commonFetch } from '../utils/api';
+import { authFetch } from '../utils/api';
 import type { Note, NoteListResponse, CreateNoteRequest, UpdateNoteRequest, NoteFilters } from '../types/notes';
 
 export const getNotes = async (filters: NoteFilters = {}): Promise<NoteListResponse> => {
@@ -10,7 +10,7 @@ export const getNotes = async (filters: NoteFilters = {}): Promise<NoteListRespo
   if (filters.end_date) queryParams.append('end_date', filters.end_date);
   if (filters.request_uuid) queryParams.append('request_uuid', filters.request_uuid);
 
-  return await commonFetch<NoteListResponse>(`/notes?${queryParams.toString()}`);
+  return await authFetch<NoteListResponse>(`/notes?${queryParams.toString()}`);
 };
 
 export const getUpcomingReminders = async (startDate?: string, endDate?: string): Promise<Note[]> => {
@@ -18,25 +18,25 @@ export const getUpcomingReminders = async (startDate?: string, endDate?: string)
   if (startDate) queryParams.append('start_date', startDate);
   if (endDate) queryParams.append('end_date', endDate);
 
-  return await commonFetch<Note[]>(`/notes/reminders?${queryParams.toString()}`);
+  return await authFetch<Note[]>(`/notes/reminders?${queryParams.toString()}`);
 };
 
 export const createNote = async (data: CreateNoteRequest): Promise<Note> => {
-  return await commonFetch<Note>('/notes', {
+  return await authFetch<Note>('/notes', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 };
 
 export const updateNote = async (id: string, data: UpdateNoteRequest): Promise<Note> => {
-  return await commonFetch<Note>(`/notes/${id}`, {
+  return await authFetch<Note>(`/notes/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 };
 
 export const deleteNote = async (id: string): Promise<void> => {
-  await commonFetch(`/notes/${id}`, {
+  await authFetch(`/notes/${id}`, {
     method: 'DELETE',
   });
 };

@@ -9,6 +9,8 @@ export interface User {
   is_public?: boolean;
   email_verified?: boolean;
   role?: 'admin' | 'user';
+  plan?: 'free' | 'basic' | 'pro' | 'enterprise'; // Added plan field
+  monthly_request_count?: number; // Added tracking field
   created_at?: string;
   updated_at?: string;
 }

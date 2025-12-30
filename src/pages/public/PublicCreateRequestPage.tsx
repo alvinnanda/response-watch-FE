@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CreateRequestForm } from '../../components/request/CreateRequestForm';
+import { CreateRequestForm, type InitialNoteData } from '../../components/request/CreateRequestForm';
 import { Button, Modal } from '../../components/ui';
 import { createPublicRequest } from '../../api/requests';
 import { getDeviceFingerprint } from '../../utils/fingerprint';
@@ -21,7 +21,14 @@ export function PublicCreateRequestPage() {
 
   const navigate = useNavigate();
 
-  const handleSubmit = async (data: { title: string; description: string; followupLink: string; vendorGroupId?: string }) => {
+  const handleSubmit = async (data: { 
+    title: string; 
+    description: string; 
+    followupLink: string; 
+    vendorGroupId?: string;
+    specificPic?: string;
+    initialNote?: InitialNoteData 
+  }) => {
     setIsLoading(true);
     
     try {
@@ -138,6 +145,7 @@ export function PublicCreateRequestPage() {
                                 key={successToken ? 'submitted' : 'new'} 
                                 onSubmit={handleSubmit}
                                 isLoading={isLoading}
+                                hideInitialNote={true}
                             />
                         </div>
                     </div>

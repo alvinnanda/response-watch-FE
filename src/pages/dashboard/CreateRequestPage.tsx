@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CreateRequestForm } from '../../components/request/CreateRequestForm';
 import { createRequest } from '../../api/requests';
 import { getGroups, type VendorGroup } from '../../api/groups';
+import moment from 'moment';
 
 import type { InitialNoteData } from '../../components/request/CreateRequestForm';
 
@@ -47,7 +48,8 @@ export function CreateRequestPage() {
   const groupOptions = groups.map(g => ({
     value: g.id,
     label: g.group_name,
-    subLabel: `${g.pic_names.length} PICs`
+    subLabel: `${g.pic_names.length} PICs`,
+    picNames: g.pic_names
   }));
 
   const handleSubmit = async (data: { 
@@ -55,13 +57,21 @@ export function CreateRequestPage() {
       description: string; 
       followupLink: string; 
       vendorGroupId?: string; 
-      initialNote?: InitialNoteData
+      specificPic?: string;
+      initialNote?: InitialNoteData;
+      isDescriptionSecure?: boolean;
+      descriptionPin?: string;
   }) => {
     setIsLoading(true);
     setError('');
     
     let embeddedPicList: string[] | undefined;
-    if (data.vendorGroupId) {
+    
+    // Logic: If specificPic is chosen, use that inside a list.
+    // If not, use the group's full list (existing behavior).
+    if (data.specificPic) {
+        embeddedPicList = [data.specificPic];
+    } else if (data.vendorGroupId) {
       const selectedGroup = groups.find(g => g.id === data.vendorGroupId);
       if (selectedGroup) {
         embeddedPicList = selectedGroup.pic_names;
@@ -74,6 +84,8 @@ export function CreateRequestPage() {
         description: data.description || undefined,
         followup_link: data.followupLink || undefined,
         embedded_pic_list: embeddedPicList,
+        is_description_secure: data.isDescriptionSecure,
+        description_pin: data.descriptionPin,
       });
 
       // Chain Creation: If initial note exists, create it
@@ -81,11 +93,16 @@ export function CreateRequestPage() {
           try {
               // We need to import createNote first. I'll assume it's imported or I will add the import.
               await import('../../api/notes').then(mod => mod.createNote({
-                  title: data.initialNote!.title,
+                  title: data.initialNote!.title || 'Untitled Note',
                   content: data.initialNote!.content,
                   tagline: data.initialNote!.tagline,
                   background_color: data.initialNote!.background_color,
-                  is_reminder: false,
+                  is_reminder: data.initialNote!.is_reminder || false,
+                  remind_at: data.initialNote!.remind_at ? moment(data.initialNote!.remind_at).toISOString() : undefined,
+                  reminder_channel: data.initialNote!.is_reminder ? (data.initialNote!.reminder_channel || 'email') : undefined,
+                  webhook_url: data.initialNote!.webhook_url,
+                  webhook_payload: data.initialNote!.webhook_payload,
+                  whatsapp_phone: data.initialNote!.whatsapp_phone,
                   request_uuid: newRequest.uuid
               }));
           } catch (noteErr) {

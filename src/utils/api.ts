@@ -58,7 +58,7 @@ export async function commonFetch<T>(endpoint: string, options: FetchOptions = {
   let slowNetworkTimeout: ReturnType<typeof setTimeout> | undefined;
 
   const timeoutId = setTimeout(() => {
-    toast.warning("Server is waking up... Upgrade to Pro for zero downtime.");
+    toast.warning("Server is waking up... Upgrade to Enterprise for zero downtime.");
   }, 8000); // 10s timeout for cold start detection
 
   try {

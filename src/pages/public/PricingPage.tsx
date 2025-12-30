@@ -28,14 +28,14 @@ export function PricingPage() {
 
       <div className="flex-grow pt-32 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-12">
             {limitReached && (
                 <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-red-50 text-red-700 text-sm font-medium mb-6 border border-red-100 animate-fade-in-up">
                     <span className="flex h-2 w-2 relative mr-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                     </span>
-                    Monthly Request Limit Reached (10/10)
+                    Monthly Request Limit Reached
                 </div>
             )}
             <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
@@ -43,88 +43,169 @@ export function PricingPage() {
               <span className="text-primary">unlimited value.</span>
             </h1>
             <p className="mt-5 text-xl text-gray-500">
-              Choose the plan that fits your team. Upgrade to remove limits and unlock powerful features.
+              Choose the right plan for your team. From individual monitoring to enterprise-grade control.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {/* Free Plan */}
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 hover:border-gray-200 transition-colors relative overflow-hidden">
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-gray-50 rounded-full blur-2xl opacity-50"></div>
-                <h3 className="text-lg font-semibold text-gray-900 uppercase tracking-wide">Starter</h3>
-                <div className="mt-4 flex items-baseline text-gray-900">
-                    <span className="text-4xl font-extrabold tracking-tight">Rp. 0</span>
-                    <span className="ml-1 text-xl font-medium text-gray-500">/bulan</span>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:border-gray-300 transition-colors flex flex-col">
+                <div>
+                   <h3 className="text-lg font-semibold text-gray-900">Starter</h3>
+                   <div className="mt-4 flex items-baseline text-gray-900">
+                       <span className="text-3xl font-extrabold tracking-tight">Rp 0</span>
+                       <span className="ml-1 text-sm font-medium text-gray-500">/mo</span>
+                   </div>
+                   <p className="mt-2 text-sm text-gray-500">Perfect for trying out ResponseWatch.</p>
                 </div>
-                <p className="mt-4 text-gray-500">Perfect for trying out ResponseWatch.</p>
                 
-                <ul className="mt-8 space-y-4">
-                    <li className="flex items-center">
-                        <svg className="w-5 h-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span className="text-gray-600">
-                           <span className="line-through text-gray-400 mr-2">50 Public Requests</span> 
-                           <span className="font-semibold text-gray-900">Unlimited*</span>
-                        </span>
-                    </li>
-                    {['Basic Dashboard', 'Public Monitoring', '90-day History'].map((feature, i) => (
-                        <li key={i} className="flex items-center">
-                            <svg className="w-5 h-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <ul className="mt-6 space-y-3 flex-grow">
+                    {[
+                        '10 Requests / month', 
+                        '3 Notes / request', 
+                        '30-day History', 
+                    ].map((feature, i) => (
+                        <li key={i} className="flex items-start">
+                            <svg className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
-                            <span className="text-gray-600">{feature}</span>
+                            <span className="text-sm text-gray-600">{feature}</span>
                         </li>
                     ))}
                 </ul>
 
-                <div className="mt-8">
-                     <Link to="/register">
-                        <Button fullWidth variant="outline" className="border-gray-300 text-gray-700 hover:border-gray-900 hover:text-gray-900 transition-colors">Get Unlimited Access</Button>
-                     </Link>
-                     <p className="mt-2 text-xs text-gray-400 italic">* Syarat & Ketentuan berlaku</p>
+                <a href="https://alv.formonline.id/responsewatch" target="_blank" rel="noopener noreferrer" className="mt-8 block">
+                    <Button fullWidth variant="outline" className="border-gray-300">Get Started</Button>
+                </a>
+            </div>
+
+            {/* Basic Plan */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:border-gray-300 transition-colors flex flex-col">
+                <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Basic</h3>
+                    <div className="mt-4 flex items-baseline text-gray-900">
+                        <span className="text-3xl font-extrabold tracking-tight">Rp 52k</span>
+                        <span className="ml-1 text-sm font-medium text-gray-500">/mo</span>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-500">For individuals who need more history.</p>
                 </div>
+                
+                <ul className="mt-6 space-y-3 flex-grow">
+                     <li className="flex items-start">
+                        <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-sm font-medium text-gray-900">Unlimited Requests</span>
+                    </li>
+                    {[
+                        '10 Notes / request', 
+                        '90-day History', 
+                        'Basic Dashboard',
+                        'Public Monitoring'
+                    ].map((feature, i) => (
+                        <li key={i} className="flex items-start">
+                            <svg className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span className="text-sm text-gray-600">{feature}</span>
+                        </li>
+                    ))}
+                </ul>
+
+                <a href="https://alv.formonline.id/responsewatch" target="_blank" rel="noopener noreferrer" className="mt-8 block">
+                    <Button fullWidth variant="outline" className="border-gray-300">Upgrade Basic</Button>
+                </a>
             </div>
 
             {/* Pro Plan */}
-            <div className="bg-black rounded-3xl shadow-xl shadow-gray-200 border border-gray-900 p-8 relative overflow-hidden transform scale-105 z-10">
-                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-gray-800 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-                <div className="absolute top-4 right-8 inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold bg-white text-black uppercase tracking-wide">
-                    Recommended
+            <div className="bg-black text-white rounded-2xl shadow-xl shadow-gray-200 border border-gray-800 p-6 relative overflow-hidden transform scale-105 z-10 flex flex-col">
+                 <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-gray-800 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+                 <div className="absolute top-3 right-3">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white text-black">
+                        Recommended
+                    </span>
+                 </div>
+                 
+                <div>
+                    <h3 className="text-lg font-semibold text-white">Pro</h3>
+                    <div className="mt-4 flex items-baseline text-white">
+                        <span className="text-3xl font-extrabold tracking-tight">Rp 149k</span>
+                        <span className="ml-1 text-sm font-medium text-gray-400">/mo</span>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-400">Power users & small teams.</p>
                 </div>
                 
-                <h3 className="text-lg font-semibold text-white uppercase tracking-wide">Pro</h3>
-                <div className="mt-4 flex items-baseline text-white">
-                    <span className="text-5xl font-extrabold tracking-tight">Rp. 49.000</span>
-                    <span className="ml-1 text-xl font-medium text-gray-400">/bulan</span>
-                </div>
-                <p className="mt-4 text-gray-400">Unlimited power for growing teams.</p>
-                
-                <ul className="mt-8 space-y-4">
-                    {['All Starter Features','Unlimited Requests', 'No Spin Down','Advanced Analytics', 'Priority Support', 'Custom Branding', 'Multiple Team Members'].map((feature, i) => (
-                        <li key={i} className="flex items-center">
-                            <svg className="w-5 h-5 text-green-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <ul className="mt-6 space-y-3 flex-grow z-10 relative">
+                     <li className="flex items-start">
+                        <svg className="w-5 h-5 text-green-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-sm font-medium text-white">Everything in Basic</span>
+                    </li>
+                    {[
+                         'Unlimited Notes',
+                         '365-day History',
+                         'Secure Description (PIN)',
+                         'Reminders',
+                         'Priority Support'
+                    ].map((feature, i) => (
+                        <li key={i} className="flex items-start">
+                            <svg className="w-5 h-5 text-green-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
-                            <span className="text-gray-100">{feature}</span>
+                            <span className="text-sm text-gray-300">{feature}</span>
                         </li>
                     ))}
                 </ul>
 
-                <div className="mt-8">
-                     <Link to="/register">
-                        <Button fullWidth variant="secondary" className="border-none">Available Soon</Button>
-                     </Link>
-                     <p className="text-xs text-center text-gray-500 mt-3">No credit card required for trial</p>
+                <a href="https://alv.formonline.id/responsewatch" target="_blank" rel="noopener noreferrer" className="mt-8 block z-10 relative">
+                    <Button fullWidth variant="secondary" className="border-none w-full">Upgrade Pro</Button>
+                </a>
+            </div>
+
+            {/* Enterprise Plan */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:border-gray-300 transition-colors flex flex-col">
+                <div>
+                   <h3 className="text-lg font-semibold text-gray-900">Enterprise</h3>
+                   <div className="mt-4 flex items-baseline text-gray-900">
+                       <span className="text-3xl font-extrabold tracking-tight">Custom</span>
+                   </div>
+                   <p className="mt-2 text-sm text-gray-500">For organizations with unique needs.</p>
                 </div>
+                
+                <ul className="mt-6 space-y-3 flex-grow">
+                    <li className="flex items-start">
+                        <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-sm font-medium text-gray-900">Everything in Pro</span>
+                    </li>
+                    {[
+                        'No Downtime (SLA 99.9%)',
+                        'Unlimited History',
+                        'Custom Branding',
+                        'API Access',
+                        'Dedicated Support'
+                    ].map((feature, i) => (
+                        <li key={i} className="flex items-start">
+                            <svg className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span className="text-sm text-gray-600">{feature}</span>
+                        </li>
+                    ))}
+                </ul>
+
+                <a href="mailto:sales@responsewatch.com" className="mt-8 block">
+                    <Button fullWidth variant="outline" className="border-gray-300">Contact Sales</Button>
+                </a>
             </div>
           </div>
 
-          {/* Enterprise CTA */}
           <div className="mt-16 text-center">
-              <p className="text-gray-500">
-                  Need custom solutions? <a href="mailto:alvinnandad1@gmail.com" className="text-black font-semibold underline">Contact Sales</a>
-              </p>
+             <p className="text-gray-500 text-sm">
+                All prices in IDR. Cancel anytime. <a href="#" className="underline hover:text-gray-900">Terms apply.</a>
+             </p>
           </div>
         </div>
       </div>

@@ -26,6 +26,7 @@ interface RichTextEditorProps {
 export function RichTextEditor({ value, onChange, placeholder = 'Write something...', className }: RichTextEditorProps) {
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -54,13 +55,15 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write something
     ],
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[95%] p-2',
+        class: 'prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-full h-full p-3',
       },
     },
     content: value,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
+    onFocus: () => setIsFocused(true),
+    // onBlur: () => setIsFocused(false),
   });
 
   // Sync content if value changes externally (and editor matches content logic usually needed, 
@@ -151,7 +154,7 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write something
     <div className={`rounded-lg overflow-hidden flex flex-col focus-within:ring-2 focus-within:ring-primary/50 focus-within:ring-inset transition-all ${(className || '').includes('border') ? '' : 'border border-gray-300'} ${className || ''}`}>
       {/* Toolbar */}
       <div 
-        className={`flex flex-wrap items-center gap-1 shrink-0 px-3 py-2 border-b border-gray-100 bg-gray-50/50 transition-opacity duration-300 ${editor.isFocused ? 'opacity-100' : 'opacity-0 pointer-events-none h-0 py-0 border-none overflow-hidden'}`}
+        className={`flex flex-wrap items-center gap-1 shrink-0 px-3 py-2 border-b border-gray-100 bg-gray-50/50 transition-opacity duration-300 ${isFocused ? 'opacity-100' : 'opacity-0 pointer-events-none h-0 py-0 border-none overflow-hidden'}`}
       >
         <select
           value={
@@ -232,7 +235,15 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write something
       </div>
 
       {/* Content Area */}
-      <EditorContent editor={editor} className="flex-grow overflow-y-auto" />
+      <EditorContent 
+        editor={editor} 
+        className="flex-grow overflow-y-auto cursor-text" 
+        onClick={() => {
+            if (!editor?.isFocused) {
+                editor?.commands.focus(); 
+            }
+        }}
+      />
 
       {/* Link Modal */}
       <Modal

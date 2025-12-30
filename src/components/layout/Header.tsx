@@ -145,17 +145,17 @@ export function Header() {
                         <h4 className="text-lg font-bold text-gray-900 leading-tight">
                             {user?.full_name || 'User'}
                         </h4>
-                        <p className="text-sm text-gray-500 font-medium mt-1">@{user?.username}</p>
+                        <p className="text-sm text-gray-500 font-medium mt-1">{user?.username}</p>
                         
                         <div className="mt-4 flex flex-wrap justify-center gap-2">
-                            {user?.role && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200 uppercase tracking-wide">
-                                    {user.role}
-                                </span>
-                            )}
-                            {user?.organization && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 uppercase tracking-wide">
-                                    {user.organization}
+                            {user?.plan && (
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border uppercase tracking-wide ${
+                                    user.plan === 'enterprise' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                    user.plan === 'pro' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                    user.plan === 'basic' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                    'bg-green-50 text-green-700 border-green-200' // free
+                                }`}>
+                                    {user.plan} Plan
                                 </span>
                             )}
                         </div>

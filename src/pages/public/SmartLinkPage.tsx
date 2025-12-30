@@ -1,34 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button, Card } from '../../components/ui';
-import { getPublicRequest, startPublicRequest, finishPublicRequest, type PublicRequest } from '../../api/requests';
+import { getPublicRequest, startPublicRequest, finishPublicRequest, verifyDescriptionPin, type PublicRequest } from '../../api/requests';
 import moment from 'moment';
 
 type RequestStatus = 'waiting' | 'in_progress' | 'done';
 
-// Helper to auto-linkify text
-const linkifyText = (text: string) => {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const parts = text.split(urlRegex);
-  
-  return parts.map((part, i) => {
-    if (part.match(urlRegex)) {
-      return (
-        <a 
-          key={i} 
-          href={part} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-primary hover:text-primary-hover underline decoration-primary/30 transition-colors"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {part}
-        </a>
-      );
-    }
-    return part;
-  });
-};
+import { RichTextViewer } from '../../components/ui/RichTextViewer';
 
 const ShareButton = () => {
   const { token } = useParams<{ token: string }>();
@@ -84,6 +62,14 @@ export function SmartLinkPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+
+  // PIN verification state
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinVerified, setPinVerified] = useState(false);
+  const [enteredPin, setEnteredPin] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [pinLoading, setPinLoading] = useState(false);
+  const [unlockedDescription, setUnlockedDescription] = useState<string | null>(null);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -210,7 +196,7 @@ export function SmartLinkPage() {
   if (error || !request) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
-        <Card padding="lg" className="max-w-md text-center">
+        <Card padding="sm" className="max-w-md text-center">
           <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -224,29 +210,59 @@ export function SmartLinkPage() {
   }
 
   const RequestHeader = () => {
-    const maxLength = 150;
-    const isLong = request.description && request.description.length > maxLength;
-    const displayDesc = isLong ? request.description?.substring(0, maxLength) + '...' : request.description;
+    // We can't easily truncate HTML string safely without a parser.
+    // CSS line-clamping or max-height is best for visual truncation.
+    const displayDescription = unlockedDescription || request.description;
+    const isLong = displayDescription && displayDescription.length > 150; // simple heuristic for button visibility
+    const isSecured = request.is_description_secure && !pinVerified;
 
     return (
       <>
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight mt-4">{request.title}</h1>
-        {request.description && (
-          <div className="relative mt-3 p-4 bg-gray-50 rounded-xl border border-gray-100 text-left">
-            <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap break-words">
-              {linkifyText(displayDesc || '')}
-              {/* Always show Read more if there are details hidden in modal (like full desc or metadata) */}
-              
-              <button 
+        
+        {/* Secured Description - Show Lock */}
+        {isSecured && (
+          <div className="relative mt-3 p-4 bg-gray-50 rounded-xl border border-gray-100 text-center">
+            <div className="flex flex-col items-center gap-3 py-4">
+              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700">Deskripsi Dilindungi PIN</p>
+                <p className="text-xs text-gray-500 mt-0.5">Masukkan PIN untuk melihat deskripsi</p>
+              </div>
+              <button
+                onClick={() => setShowPinModal(true)}
+                className="mt-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                Masukkan PIN
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Normal Description Display */}
+        {!isSecured && displayDescription && (
+          <div className="relative mt-3 p-4 bg-gray-50 rounded-xl border border-gray-100 text-left group">
+             {/* Preview: Limited Height + RichText */}
+            <div className={`relative ${!showDescModal ? 'max-h-[120px] overflow-hidden mask-image-bottom' : ''}`}>
+                 <RichTextViewer content={displayDescription || ''} className="text-sm text-gray-600" />
+                 {/* Gradient Overlay for truncated view */}
+                 <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none" />
+            </div>
+
+             <button 
                 onClick={() => setShowDescModal(true)}
-                className="ml-1 text-primary text-xs font-semibold hover:underline bg-gray-50 inline-flex items-center gap-0.5"
+                className="mt-2 text-primary text-xs font-semibold hover:underline bg-gray-50 inline-flex items-center gap-0.5"
               >
                 {isLong ? 'Baca selengkapnya' : 'Lihat Detail'}
               </button>
-            </p>
           </div>
         )}
-        {!request.description && (
+        {!isSecured && !displayDescription && (
              <button 
                 onClick={() => setShowDescModal(true)}
                 className="mt-2 text-primary text-sm font-medium hover:underline flex items-center justify-center gap-1 mx-auto"
@@ -456,8 +472,8 @@ export function SmartLinkPage() {
 
         {/* Description Modal */}
         {showDescModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all">
-            <Card className="w-full max-w-sm md:max-w-2xl max-h-[80vh] flex flex-col relative" padding="lg">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 z-50 transition-all">
+            <Card className="w-full max-w-sm md:max-w-2xl max-h-[80vh] flex flex-col relative" padding="sm">
                <button 
                   onClick={() => setShowDescModal(false)}
                   className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 bg-white rounded-full z-10"
@@ -487,9 +503,9 @@ export function SmartLinkPage() {
               </div>
               
               <div className="overflow-y-auto flex-1 pr-1 custom-scrollbar">
-                <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
-                  {linkifyText(request.description || '')}
-                </p>
+                <div className="text-gray-600 text-sm leading-relaxed">
+                  <RichTextViewer content={unlockedDescription || request.description || ''} />
+                </div>
                 
                 <div className="mt-6 pt-4 border-t border-gray-100 grid grid-cols-2 gap-4">
                   <div>
@@ -523,7 +539,7 @@ export function SmartLinkPage() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-2">
+              <div className="mt-2 pt-2">
                 <Button fullWidth onClick={() => setShowDescModal(false)}>
                   Tutup
                 </Button>
@@ -566,6 +582,97 @@ export function SmartLinkPage() {
                   Ya, Selesai
                 </Button>
               </div>
+            </Card>
+          </div>
+        )}
+
+        {/* PIN Verification Modal */}
+        {showPinModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all">
+            <Card className="w-full max-w-sm text-center" padding="lg">
+              <button 
+                onClick={() => {
+                  setShowPinModal(false);
+                  setEnteredPin('');
+                  setPinError('');
+                }}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </div>
+              
+              <h3 className="font-bold text-gray-900 text-lg mb-2">Masukkan PIN</h3>
+              <p className="text-gray-500 text-sm mb-6">
+                Deskripsi ini dilindungi PIN. Masukkan PIN untuk melihatnya.
+              </p>
+              
+              <div className="mb-4">
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={enteredPin}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setEnteredPin(val);
+                    setPinError('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && enteredPin.length >= 4) {
+                      // Trigger verification
+                      const verifyBtn = document.getElementById('verify-pin-btn');
+                      verifyBtn?.click();
+                    }
+                  }}
+                  placeholder="••••"
+                  className="w-full px-4 py-3 text-center text-2xl tracking-[0.5em] font-mono border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  autoFocus
+                />
+                {pinError && (
+                  <p className="text-sm text-red-500 mt-2">{pinError}</p>
+                )}
+              </div>
+              
+              <Button 
+                id="verify-pin-btn"
+                fullWidth
+                onClick={async () => {
+                  if (!token || !enteredPin) return;
+                  
+                  setPinLoading(true);
+                  setPinError('');
+                  
+                  try {
+                    const result = await verifyDescriptionPin(token, enteredPin);
+                    if (result.success && result.description) {
+                      setUnlockedDescription(result.description);
+                      setPinVerified(true);
+                      setShowPinModal(false);
+                      setEnteredPin('');
+                    } else {
+                      setPinError('PIN salah. Silakan coba lagi.');
+                    }
+                  } catch {
+                    setPinError('PIN salah. Silakan coba lagi.');
+                  } finally {
+                    setPinLoading(false);
+                  }
+                }}
+                disabled={pinLoading || enteredPin.length < 4}
+                className="bg-primary hover:bg-primary/90"
+              >
+                {pinLoading ? 'Memverifikasi...' : 'Verifikasi'}
+              </Button>
             </Card>
           </div>
         )}

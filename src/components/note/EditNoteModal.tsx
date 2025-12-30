@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui';
+import { useAuth } from '../../contexts/AuthContext';
 import { createNote, updateNote } from '../../api/notes';
 import type { Note, CreateNoteRequest } from '../../types/notes';
 import moment from 'moment';
@@ -9,13 +10,16 @@ import { NoteEditor, type NoteEditorData } from './NoteEditor';
 
 interface EditNoteModalProps {
   note?: Note | null; // If null, creating new note
+  initialData?: NoteEditorData; // Optional initial data for new notes (local state)
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  onSave?: (data: NoteEditorData) => Promise<void> | void; // Optional override for API save
   requestUUID?: string; // Optional context linking
 }
 
-export function EditNoteModal({ note, isOpen, onClose, onSuccess, requestUUID }: EditNoteModalProps) {
+export function EditNoteModal({ note, initialData, isOpen, onClose, onSuccess, onSave, requestUUID }: EditNoteModalProps) {
+  const { user } = useAuth();
   // Determine initial data strictly from props to avoid stale state issues during remount
   const initialEditorData: NoteEditorData = useMemo(() => {
      if (note) {
@@ -28,9 +32,10 @@ export function EditNoteModal({ note, isOpen, onClose, onSuccess, requestUUID }:
           remind_at: note.remind_at ? moment(note.remind_at).format('YYYY-MM-DDTHH:mm') : '',
           webhook_url: note.webhook_url || '',
           webhook_payload: note.webhook_payload || '{\n  "message": "Reminder: {{title}}",\n  "content": "{{content}}"\n}',
+          whatsapp_phone: note.whatsapp_phone || ''
         };
      }
-     return {
+     return initialData || {
         title: '',
         content: '',
         tagline: '',
@@ -39,8 +44,9 @@ export function EditNoteModal({ note, isOpen, onClose, onSuccess, requestUUID }:
         remind_at: '',
         webhook_url: '',
         webhook_payload: '{\n  "message": "Reminder: {{title}}",\n  "content": "{{content}}"\n}',
+        whatsapp_phone: ''
      };
-  }, [note]);
+  }, [note, initialData]);
 
   // key state for form
   const [editorData, setEditorData] = useState<NoteEditorData>(initialEditorData);
@@ -56,6 +62,10 @@ export function EditNoteModal({ note, isOpen, onClose, onSuccess, requestUUID }:
   const isDirty = useMemo(() => {
     if (!note) {
         // For new note, it's dirty if user typed anything relevant
+        // If initialData provided, compare with it
+        if (initialData) {
+            return JSON.stringify(editorData) !== JSON.stringify(initialData);
+        }
         return !!editorData.title || !!editorData.content;
     } 
     
@@ -69,9 +79,10 @@ export function EditNoteModal({ note, isOpen, onClose, onSuccess, requestUUID }:
         editorData.is_reminder !== note.is_reminder ||
         normalize(editorData.remind_at) !== (note.remind_at ? moment(note.remind_at).format('YYYY-MM-DDTHH:mm') : '') ||
         normalize(editorData.webhook_url) !== normalize(note.webhook_url) ||
-        normalize(editorData.webhook_payload) !== normalize(note.webhook_payload)
+        normalize(editorData.webhook_payload) !== normalize(note.webhook_payload) ||
+        normalize(editorData.whatsapp_phone) !== normalize(note.whatsapp_phone)
     );
-  }, [editorData, note]);
+  }, [editorData, note, initialData]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -90,6 +101,14 @@ export function EditNoteModal({ note, isOpen, onClose, onSuccess, requestUUID }:
     setLoading(true);
 
     try {
+      // If onSave is provided, use it and skip API
+      if (onSave) {
+          await onSave(editorData);
+          onSuccess();
+          onClose();
+          return;
+      }
+
       // Prepare Payload
       const payload: CreateNoteRequest = {
           title: editorData.title || 'Untitled Note',
@@ -101,9 +120,10 @@ export function EditNoteModal({ note, isOpen, onClose, onSuccess, requestUUID }:
           
           // Reminder fields
           remind_at: editorData.remind_at ? moment(editorData.remind_at).toISOString() : undefined,
-          reminder_channel: editorData.is_reminder ? (editorData.webhook_url ? 'webhook' : 'email') : undefined, // Simple logic
+          reminder_channel: editorData.is_reminder ? (editorData.reminder_channel) : undefined,
           webhook_url: editorData.webhook_url,
-          webhook_payload: editorData.webhook_payload
+          webhook_payload: editorData.webhook_payload,
+          whatsapp_phone: editorData.whatsapp_phone
       };
       
       // Validation
@@ -113,10 +133,26 @@ export function EditNoteModal({ note, isOpen, onClose, onSuccess, requestUUID }:
               setLoading(false);
               return;
           }
-          if (editorData.webhook_url && !editorData.webhook_url.startsWith('http')) {
-               toast.error('Invalid Webhook URL');
-               setLoading(false);
-               return;
+          
+          if (editorData.reminder_channel === 'webhook') {
+              if (!editorData.webhook_url) {
+                  toast.error('Webhook URL is required');
+                  setLoading(false);
+                  return;
+              }
+              if (!editorData.webhook_url.startsWith('http')) {
+                   toast.error('Invalid Webhook URL');
+                   setLoading(false);
+                   return;
+              }
+          }
+
+          if (editorData.reminder_channel === 'whatsapp') {
+              if (!editorData.whatsapp_phone) {
+                  toast.error('WhatsApp phone number is required');
+                  setLoading(false);
+                  return;
+              }
           }
       }
 
@@ -178,6 +214,7 @@ export function EditNoteModal({ note, isOpen, onClose, onSuccess, requestUUID }:
                 initialData={initialEditorData}
                 onChange={setEditorData} 
                 isSettingsOpen={showSettings}
+                hideReminder={!['pro', 'enterprise'].includes(user?.plan || 'free')}
                 className="min-h-full border-none rounded-none shadow-none"
             />
         </div>

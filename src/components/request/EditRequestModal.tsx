@@ -195,6 +195,7 @@ export function EditRequestModal({ request, isOpen, onClose, onSuccess }: EditRe
                 onLoadMoreGroups={loadMoreGroups}
                 hasMoreGroups={hasMore}
                 isLoadingGroups={isGroupsLoading}
+                hideInitialNote={true}
             />
           ) : (
              <div className="space-y-4 animate-fade-in">

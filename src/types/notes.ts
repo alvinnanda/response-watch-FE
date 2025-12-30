@@ -5,9 +5,10 @@ export interface Note {
   content: string;
   remind_at?: string; // ISO string
   is_reminder: boolean;
-  reminder_channel?: 'email' | 'webhook' | '';
+  reminder_channel?: 'email' | 'webhook' | 'whatsapp' | '';
   webhook_url?: string;
   webhook_payload?: string;
+  whatsapp_phone?: string;
   background_color?: string;
   tagline?: string;
   request_uuid?: string;
@@ -41,9 +42,10 @@ export interface CreateNoteRequest {
   content: string;
   remind_at?: string;
   is_reminder: boolean;
-  reminder_channel?: 'email' | 'webhook' | '';
+  reminder_channel?: 'email' | 'webhook' | 'whatsapp' | '';
   webhook_url?: string;
   webhook_payload?: string;
+  whatsapp_phone?: string;
   background_color?: string;
   tagline?: string;
   request_uuid?: string;
