@@ -141,7 +141,7 @@ function useAllRequests(username: string, startDate: string, endDate: string, en
     }
   }, [enabled, username, startDate, endDate, fetchRequests, isPageVisible]);
 
-  // Polling for updates (every 30 seconds) - only for fresh data, not pagination
+  // Polling for updates (every 60 seconds) - only for fresh data, not pagination
   // Pause polling when page is not visible
   useEffect(() => {
     if (!enabled || !isPageVisible) return;
@@ -156,7 +156,7 @@ function useAllRequests(username: string, startDate: string, endDate: string, en
         setHasMore(true);
         fetchRequests(false);
       }
-    }, 30000);
+    }, 60000);
     
     return () => clearInterval(interval);
   }, [enabled, fetchRequests, isPageVisible]);

@@ -84,7 +84,7 @@ export function PricingPage() {
                 <div>
                     <h3 className="text-lg font-semibold text-gray-900">Basic</h3>
                     <div className="mt-4 flex items-baseline text-gray-900">
-                        <span className="text-3xl font-extrabold tracking-tight">Rp 52k</span>
+                        <span className="text-3xl font-extrabold tracking-tight">Rp 42k</span>
                         <span className="ml-1 text-sm font-medium text-gray-500">/mo</span>
                     </div>
                     <p className="mt-2 text-sm text-gray-500">For individuals who need more history.</p>
@@ -129,7 +129,7 @@ export function PricingPage() {
                 <div>
                     <h3 className="text-lg font-semibold text-white">Pro</h3>
                     <div className="mt-4 flex items-baseline text-white">
-                        <span className="text-3xl font-extrabold tracking-tight">Rp 149k</span>
+                        <span className="text-3xl font-extrabold tracking-tight">Rp 89k</span>
                         <span className="ml-1 text-sm font-medium text-gray-400">/mo</span>
                     </div>
                     <p className="mt-2 text-sm text-gray-400">Power users & small teams.</p>
@@ -181,7 +181,8 @@ export function PricingPage() {
                         <span className="text-sm font-medium text-gray-900">Everything in Pro</span>
                     </li>
                     {[
-                        'No Downtime (SLA 99.9%)',
+                        'No Downtime',
+                        'Team',
                         'Unlimited History',
                         'Custom Branding',
                         'API Access',

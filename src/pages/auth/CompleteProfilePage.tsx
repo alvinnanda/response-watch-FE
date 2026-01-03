@@ -10,13 +10,23 @@ export function CompleteProfilePage() {
   const [username, setUsername] = useState('');
   const [organization, setOrganization] = useState('');
   const [isPublic, setIsPublic] = useState(true);
+  const [notifyEmail, setNotifyEmail] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Pre-fill username if available, but allow editing
+  // Pre-fill values if available
   useEffect(() => {
     if (user?.username) {
       setUsername(user.username);
+    }
+    if (user?.organization) {
+      setOrganization(user.organization);
+    }
+    if (user?.is_public !== undefined) {
+      setIsPublic(user.is_public);
+    }
+    if (user?.notify_email !== undefined) {
+      setNotifyEmail(user.notify_email);
     }
   }, [user]);
 
@@ -39,7 +49,7 @@ export function CompleteProfilePage() {
 
     try {
       if (updateProfile) {
-        await updateProfile({ username, organization, is_public: isPublic });
+        await updateProfile({ username, organization, is_public: isPublic, notify_email: notifyEmail });
         // After successful update, user should have organization, so we can redirect to dashboard
         navigate('/dashboard');
       } else {
@@ -115,6 +125,26 @@ export function CompleteProfilePage() {
                   Public Profile
                 </label>
                 <p className="text-gray-500">Allow anyone to view your public request monitoring page.</p>
+              </div>
+            </div>
+
+            {/* Email Notification Toggle */}
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="notify_email"
+                  name="notify_email"
+                  type="checkbox"
+                  checked={notifyEmail}
+                  onChange={(e) => setNotifyEmail(e.target.checked)}
+                  className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="notify_email" className="font-medium text-gray-700">
+                  Email Notifications
+                </label>
+                <p className="text-gray-500">Receive email notifications when request status changes.</p>
               </div>
             </div>
 

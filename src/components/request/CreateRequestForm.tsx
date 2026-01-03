@@ -145,7 +145,7 @@ export function CreateRequestForm({
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                     }`}
                 >
-                    Initial Note
+                    Note & Pengingat
                     {noteData.content && <span className="w-2 h-2 rounded-full bg-green-500"></span>}
                 </button>
             </div>

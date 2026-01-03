@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside';
+import { NotificationBell } from '../notifications/NotificationBell';
 
 export function Header() {
   const location = useLocation();
@@ -92,6 +93,9 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
+            {/* Notification Bell */}
+            <NotificationBell />
+
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
