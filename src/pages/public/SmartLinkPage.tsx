@@ -4,7 +4,7 @@ import { Button, Card } from '../../components/ui';
 import { getPublicRequest, startPublicRequest, finishPublicRequest, verifyDescriptionPin, type PublicRequest } from '../../api/requests';
 import moment from 'moment';
 
-type RequestStatus = 'waiting' | 'in_progress' | 'done';
+type RequestStatus = 'waiting' | 'in_progress' | 'done' | 'scheduled';
 
 import { RichTextViewer } from '../../components/ui/RichTextViewer';
 
@@ -70,6 +70,10 @@ export function SmartLinkPage() {
   const [pinError, setPinError] = useState('');
   const [pinLoading, setPinLoading] = useState(false);
   const [unlockedDescription, setUnlockedDescription] = useState<string | null>(null);
+
+  // Finish request state
+  const [checkboxIssueMismatch, setCheckboxIssueMismatch] = useState(false);
+  const [resolutionNotes, setResolutionNotes] = useState('');
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -149,10 +153,20 @@ export function SmartLinkPage() {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-      const updated = await finishPublicRequest(token, selectedPic || undefined);
+      const updated = await finishPublicRequest(
+        token, 
+        selectedPic || undefined,
+        checkboxIssueMismatch,
+        resolutionNotes || undefined
+      );
       setRequest(updated);
       setStatus('done');
       if (updated.duration_seconds) setElapsedTime(updated.duration_seconds);
+      
+      // Reset state
+      setCheckboxIssueMismatch(false);
+      setResolutionNotes('');
+      setShowFinishConfirm(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to finish');
     } finally {
@@ -323,7 +337,7 @@ export function SmartLinkPage() {
                   {actionLoading ? 'Memulai...' : 'Mulai Pengerjaan'}
                 </Button>
                 <p className="text-xs text-gray-400 mt-4">
-                  Dengan mengklik tombol di atas, pemilik akan menerima pemberitahuan dan penghitung waktu akan dimulai secara otomatis.
+                  Klik tombol di atas saat mulai bekerja (termasuk persiapan & perjalanan).
                 </p>
               </div>
             </div>
@@ -413,14 +427,95 @@ export function SmartLinkPage() {
 
                 <div className="relative z-10 flex gap-4">
                   <div className="w-4 h-4 mt-1 rounded-full bg-green-500 ring-4 ring-white shadow-sm shadow-green-500/30 shrink-0"></div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-bold text-gray-900">Masalah Teratasi</p>
                     <p className="text-xs text-gray-500 mt-0.5">
                       Total durasi: <span className="text-gray-700 font-medium">{formatDurationHuman(elapsedTime)}</span>
                     </p>
+                    
+                    {/* Resolution notes */}
+                    {request.resolution_notes && (
+                      <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200">
+                        <p className="text-xs font-semibold text-gray-700 mb-1">Catatan Penyelesaian:</p>
+                        <p className="text-xs text-gray-600 whitespace-pre-wrap">{request.resolution_notes}</p>
+                      </div>
+                    )}
+                    
+                    {/* Checkbox issue mismatch */}
+                    {request.checkbox_issue_mismatch && (
+                      <div className="mt-2 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>Instruksi/Judul tidak sesuai dengan kondisi aktual</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+            </div>
+          </Card>
+        )}
+
+        {/* State D: SCHEDULED */}
+        {status === 'scheduled' && (
+          <Card padding="lg" shadow="lg" className="border-t-4 border-gray-500">
+            <div className="text-center space-y-6 relative">
+              <ShareButton />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-gray-700 ring-1 ring-gray-700/10 text-sm font-medium">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Dijadwalkan
+              </div>
+              
+              <RequestHeader />
+
+              {/* Scheduled time display */}
+              <div className="py-6 bg-gray-50/50 rounded-2xl border border-gray-100">
+                <p className="text-sm text-gray-600 font-medium mb-2">Waktu Dijadwalkan</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {moment(request.scheduled_time).format('D MMM YYYY, HH:mm')}
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  {moment(request.scheduled_time).fromNow()}
+                </p>
+              </div>
+
+              {/* Add to Calendar button */}
+              <button
+                onClick={() => {
+                  if (!request.scheduled_time) return;
+                  const startTime = moment(request.scheduled_time).format('YYYYMMDDTHHmmss');
+                  const endTime = moment(request.scheduled_time).add(1, 'hour').format('YYYYMMDDTHHmmss');
+                  const title = encodeURIComponent(request.title);
+                  const description = encodeURIComponent(`Request: ${request.title}\nLink: ${window.location.href}`);
+                  const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTime}/${endTime}&details=${description}`;
+                  window.open(googleCalUrl, '_blank');
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Tambah ke Kalender
+              </button>
+
+              {/* Disabled start button */}
+              <Button 
+                fullWidth 
+                onClick={() => {
+                  if (!request.scheduled_time) return;
+                  alert(`Request ini dijadwalkan untuk ${moment(request.scheduled_time).format('D MMM YYYY, HH:mm')}. Tombol akan aktif pada jam tersebut.`);
+                }}
+                className="h-12 text-gray-400 bg-gray-100 border-gray-200 cursor-not-allowed"
+                disabled
+              >
+                Mulai Pengerjaan (Terjadwal)
+              </Button>
+              <p className="text-xs text-gray-400">
+                Tombol akan aktif pada waktu yang dijadwalkan
+              </p>
             </div>
           </Card>
         )}
@@ -551,35 +646,63 @@ export function SmartLinkPage() {
         {/* Confirmation Modal */}
         {showFinishConfirm && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all">
-            <Card className="w-full max-w-sm text-center" padding="lg">
+            <Card className="w-full max-w-md" padding="lg">
               <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               
-              <h3 className="font-bold text-gray-900 text-lg mb-2">Selesaikan Permintaan?</h3>
-              <p className="text-gray-500 text-sm mb-6">
+              <h3 className="font-bold text-gray-900 text-lg mb-2 text-center">Selesaikan Permintaan?</h3>
+              <p className="text-gray-500 text-sm mb-4 text-center">
                 Apakah Anda yakin ingin menyelesaikan permintaan ini? Waktu pengerjaan akan dihentikan.
               </p>
+              
+              {/* Resolution notes textarea */}
+              <div className="mb-4 text-left">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Catatan Penyelesaian (opsional)
+                </label>
+                <textarea
+                  value={resolutionNotes}
+                  onChange={(e) => setResolutionNotes(e.target.value)}
+                  placeholder="Tambahkan catatan tentang penyelesaian request ini..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                  rows={3}
+                />
+              </div>
+
+              {/* Checkbox for issue mismatch */}
+              <div className="mb-6 text-left">
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={checkboxIssueMismatch}
+                    onChange={(e) => setCheckboxIssueMismatch(e.target.checked)}
+                    className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  />
+                  <span className="text-sm text-gray-700">Instruksi/Judul tidak sesuai kondisi aktual</span>
+                </label>
+              </div>
               
               <div className="grid grid-cols-2 gap-3">
                 <Button 
                   variant="outline"
-                  onClick={() => setShowFinishConfirm(false)}
+                  onClick={() => {
+                    setShowFinishConfirm(false);
+                    setCheckboxIssueMismatch(false);
+                    setResolutionNotes('');
+                  }}
                   disabled={actionLoading}
                 >
                   Batal
                 </Button>
                 <Button 
-                  onClick={() => {
-                    handleFinish();
-                    setShowFinishConfirm(false);
-                  }}
+                  onClick={handleFinish}
                   disabled={actionLoading}
                   className="bg-green-600 hover:bg-green-700 text-white border-transparent"
                 >
-                  Ya, Selesai
+                  {actionLoading ? 'Menyimpan...' : 'Ya, Selesai'}
                 </Button>
               </div>
             </Card>

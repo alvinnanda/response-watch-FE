@@ -14,6 +14,7 @@ export async function getRequests(filters: RequestFilters = {}): Promise<Request
   if (filters.start_date) params.append('start_date', filters.start_date);
   if (filters.end_date) params.append('end_date', filters.end_date);
   if (filters.search) params.append('search', filters.search);
+  if (filters.vendor_group_id) params.append('vendor_group_id', filters.vendor_group_id.toString());
   
   const queryString = params.toString();
   const endpoint = queryString ? `/requests?${queryString}` : '/requests';
@@ -24,8 +25,44 @@ export async function getRequests(filters: RequestFilters = {}): Promise<Request
 /**
  * Fetch request statistics
  */
-export async function getRequestStats(): Promise<RequestStats> {
-  return authFetch<RequestStats>('/requests/stats');
+export async function getRequestStats(filters: RequestFilters = {}): Promise<RequestStats> {
+  const params = new URLSearchParams();
+  
+  if (filters.start_date) params.append('start_date', filters.start_date);
+  if (filters.end_date) params.append('end_date', filters.end_date);
+  if (filters.search) params.append('search', filters.search);
+  if (filters.vendor_group_id) params.append('vendor_group_id', filters.vendor_group_id.toString());
+  // Note: We typically don't filter stats by 'page' or 'limit', but 'status' filter might be relevant if we wanted to drill down, 
+  // but usually stats OVERVIEW shows all statuses. However, if user filters by "Waiting", should the charts only show "Waiting"?
+  // Usually the cards show totals for each status, so filtering by status might make the cards redundant or confusing.
+  // For now, let's keep status filter OUT of stats to keep the overview holistic, OR only apply it if explicitly needed.
+  // The plan said "Status, Vendor, Search". Let's include status if the backend supports it, but checking backend implementation...
+  // The backend implementation I just wrote APPLIES standard filters.
+  // The "Status" card query calculates counts FOR EACH status. If I filter by status=waiting, the query will logically only return count for waiting.
+  // This is acceptable behavior: "Show me stats for Waiting requests".
+  if (filters.status) params.append('status', filters.status);
+
+  const queryString = params.toString();
+  const endpoint = queryString ? `/requests/stats?${queryString}` : '/requests/stats';
+  
+  return authFetch<RequestStats>(endpoint);
+}
+
+/**
+ * Fetch premium request statistics
+ */
+export async function getPremiumRequestStats(filters: RequestFilters = {}): Promise<RequestStats> {
+  const params = new URLSearchParams();
+  
+  if (filters.start_date) params.append('start_date', filters.start_date);
+  if (filters.end_date) params.append('end_date', filters.end_date);
+  if (filters.search) params.append('search', filters.search);
+  if (filters.vendor_group_id) params.append('vendor_group_id', filters.vendor_group_id.toString());
+
+  const queryString = params.toString();
+  const endpoint = queryString ? `/requests/stats/premium?${queryString}` : '/requests/stats/premium';
+  
+  return authFetch<RequestStats>(endpoint);
 }
 
 /**
@@ -38,6 +75,8 @@ export async function createRequest(data: {
   followup_link?: string;
   is_description_secure?: boolean;
   description_pin?: string;
+  vendor_group_id?: number;
+  scheduled_time?: string;
 }): Promise<Request> {
   try {
     return await authFetch<Request>('/requests', {
@@ -88,6 +127,13 @@ export async function getRequest(id: number): Promise<Request> {
  */
 export async function deleteRequest(id: number): Promise<void> {
   return authFetch(`/requests/${id}`, { method: 'DELETE' });
+}
+
+/**
+ * Reopen a completed request
+ */
+export async function reopenRequest(id: number): Promise<Request> {
+  return authFetch<Request>(`/requests/${id}/reopen`, { method: 'PUT' });
 }
 
 /**
@@ -156,7 +202,7 @@ export interface PublicRequest {
   title: string;
   description?: string;
   followup_link?: string;
-  status: 'waiting' | 'in_progress' | 'done';
+  status: 'waiting' | 'in_progress' | 'done' | 'scheduled';
   embedded_pic_list: string[];
   start_pic?: string;
   end_pic?: string;
@@ -167,6 +213,11 @@ export interface PublicRequest {
   response_time_seconds?: number;
   pic_is_public?: boolean;
   is_description_secure: boolean;
+  scheduled_time?: string;
+  reopened_at?: string;
+  reopen_count?: number;
+  checkbox_issue_mismatch?: boolean;
+  resolution_notes?: string;
 }
 
 
@@ -191,10 +242,19 @@ export async function startPublicRequest(token: string, picName?: string): Promi
 /**
  * Finish/resolve a public request
  */
-export async function finishPublicRequest(token: string, picName?: string): Promise<PublicRequest> {
+export async function finishPublicRequest(
+  token: string, 
+  picName?: string,
+  checkboxIssueMismatch?: boolean,
+  resolutionNotes?: string
+): Promise<PublicRequest> {
   return commonFetch<PublicRequest>(`/public/t/${token}/finish`, {
     method: 'POST',
-    body: JSON.stringify({ pic_name: picName }),
+    body: JSON.stringify({ 
+      pic_name: picName,
+      checkbox_issue_mismatch: checkboxIssueMismatch || false,
+      resolution_notes: resolutionNotes 
+    }),
   });
 }
 

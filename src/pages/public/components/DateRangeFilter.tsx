@@ -31,19 +31,23 @@ export function DateRangeFilter({ startDate, endDate, onChange, minDate, maxDate
   const getLabel = () => {
     if (startDate === today && endDate === today) return 'Hari Ini';
     if (startDate === yesterday && endDate === yesterday) return 'Kemarin';
+    if (startDate === moment().subtract(2, 'days').format('YYYY-MM-DD') && endDate === today) return '3 Hari Terakhir';
     if (startDate === moment().subtract(6, 'days').format('YYYY-MM-DD') && endDate === today) return '7 Hari Terakhir';
     if (startDate === moment().subtract(29, 'days').format('YYYY-MM-DD') && endDate === today) return '30 Hari Terakhir';
     
     return `${moment(startDate).format('D MMM')} - ${moment(endDate).format('D MMM')}`;
   };
 
-  const handlePreset = (preset: 'today' | 'yesterday' | '7days' | '30days') => {
+  const handlePreset = (preset: 'today' | 'yesterday' | '3days' | '7days' | '30days') => {
     switch (preset) {
       case 'today':
         onChange(today, today);
         break;
       case 'yesterday':
         onChange(yesterday, yesterday);
+        break;
+      case '3days':
+        onChange(moment().subtract(2, 'days').format('YYYY-MM-DD'), today);
         break;
       case '7days':
         onChange(moment().subtract(6, 'days').format('YYYY-MM-DD'), today);
@@ -59,7 +63,7 @@ export function DateRangeFilter({ startDate, endDate, onChange, minDate, maxDate
     <div className="relative" ref={containerRef} onClick={(e) => e.stopPropagation()}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm"
+        className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:border-gray-300 transition-colors"
       >
         <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -75,6 +79,9 @@ export function DateRangeFilter({ startDate, endDate, onChange, minDate, maxDate
             </button>
             <button onClick={() => handlePreset('yesterday')} className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
               Kemarin
+            </button>
+            <button onClick={() => handlePreset('3days')} className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+              3 Hari Terakhir
             </button>
             <button onClick={() => handlePreset('7days')} className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
               7 Hari Terakhir

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { RichTextEditor } from '../ui/RichTextEditor';
 import { NOTE_COLORS, getNoteColor } from '../../constants/notes';
 import { Switch } from '../ui/Switch';
+import { formatPhoneNumber, getPhonePlaceholder } from '../../utils/phone';
 
 export interface NoteEditorData {
     title: string;
@@ -199,9 +200,10 @@ export function NoteEditor({ initialData, onChange, className = '', hideReminder
                                             </label>
                                             <input
                                                 type="tel"
-                                                placeholder="628xxxxxxxxxx"
+                                                placeholder={getPhonePlaceholder()}
                                                 value={whatsappPhone}
                                                 onChange={(e) => setWhatsappPhone(e.target.value)}
+                                                onBlur={() => whatsappPhone && setWhatsappPhone(formatPhoneNumber(whatsappPhone))}
                                                 className={`block w-full px-3 py-2 text-sm border rounded-md focus:ring-primary focus:border-primary bg-white/50 placeholder-gray-400 ${
                                                     !whatsappPhone ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-gray-300'
                                                 }`}

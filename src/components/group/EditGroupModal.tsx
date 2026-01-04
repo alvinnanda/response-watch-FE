@@ -1,17 +1,27 @@
 import { useState } from 'react';
 import { Button, Input, Card } from '../ui';
-import { createGroup, type PIC } from '../../api/groups';
+import { updateGroup, type PIC, type VendorGroup } from '../../api/groups';
 import { formatPhoneNumber, getPhonePlaceholder } from '../../utils/phone';
 
-interface CreateGroupModalProps {
-  onCheck: () => void;
+interface EditGroupModalProps {
+  group: VendorGroup;
+  onSuccess: () => void;
   onCancel: () => void;
 }
 
-export function CreateGroupModal({ onCheck, onCancel }: CreateGroupModalProps) {
-  const [groupName, setGroupName] = useState('');
-  const [vendorPhone, setVendorPhone] = useState('');
-  const [pics, setPics] = useState<PIC[]>([{ name: '', phone: '' }]);
+export function EditGroupModal({ group, onSuccess, onCancel }: EditGroupModalProps) {
+  const [groupName, setGroupName] = useState(group.group_name);
+  const [vendorPhone, setVendorPhone] = useState(group.vendor_phone || '');
+  const [pics, setPics] = useState<PIC[]>(() => {
+    // Initialize from pics or fallback to pic_names for backward compatibility
+    if (group.pics && group.pics.length > 0) {
+      return group.pics;
+    }
+    if (group.pic_names && group.pic_names.length > 0) {
+      return group.pic_names.map(name => ({ name, phone: '' }));
+    }
+    return [{ name: '', phone: '' }];
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -51,14 +61,14 @@ export function CreateGroupModal({ onCheck, onCancel }: CreateGroupModalProps) {
     try {
       setIsLoading(true);
       setError('');
-      await createGroup({ 
+      await updateGroup(group.id, { 
         group_name: groupName, 
         vendor_phone: vendorPhone ? formatPhoneNumber(vendorPhone) : undefined,
         pics: validPics
       });
-      onCheck(); // Refresh list / Close modal
+      onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create group');
+      setError(err instanceof Error ? err.message : 'Failed to update group');
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +78,7 @@ export function CreateGroupModal({ onCheck, onCancel }: CreateGroupModalProps) {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-md" padding="lg">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Create Vendor Group</h2>
+          <h2 className="text-xl font-bold text-gray-900">Edit Vendor Group</h2>
           <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -160,7 +170,7 @@ export function CreateGroupModal({ onCheck, onCancel }: CreateGroupModalProps) {
               fullWidth
               isLoading={isLoading}
             >
-              Create Group
+              Save Changes
             </Button>
           </div>
         </form>
@@ -168,4 +178,3 @@ export function CreateGroupModal({ onCheck, onCancel }: CreateGroupModalProps) {
     </div>
   );
 }
-

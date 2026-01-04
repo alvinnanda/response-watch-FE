@@ -27,6 +27,7 @@ interface CreateRequestFormProps {
       initialNote?: NoteEditorData;
       isDescriptionSecure?: boolean;
       descriptionPin?: string;
+      scheduledTime?: string;
   }) => Promise<void>;
   onCancel?: () => void;
   isLoading?: boolean;
@@ -83,6 +84,9 @@ export function CreateRequestForm({
   const [confirmPin, setConfirmPin] = useState('');
   const [pinError, setPinError] = useState('');
 
+  // Scheduled Time State
+  const [scheduledTime, setScheduledTime] = useState('');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -112,6 +116,7 @@ export function CreateRequestForm({
       initialNote: initialNoteData,
       isDescriptionSecure: isDescriptionSecure || undefined,
       descriptionPin: (isDescriptionSecure && descriptionPin) ? descriptionPin : undefined,
+      scheduledTime: scheduledTime || undefined,
     });
   };
 
@@ -358,6 +363,27 @@ export function CreateRequestForm({
                                   </p>
                                 </div>
                               )}
+                            </div>
+
+                            {/* Scheduled Time Picker */}
+                            <div className="pt-4 border-t border-gray-100">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <div className="flex items-center gap-2">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                                    <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                  Jadwalkan Request (Optional)
+                                </div>
+                              </label>
+                              <input
+                                type="datetime-local"
+                                value={scheduledTime}
+                                onChange={(e) => setScheduledTime(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                Vendor tidak dapat memulai request sebelum waktu yang dijadwalkan
+                              </p>
                             </div>
                         </div>
                     )}

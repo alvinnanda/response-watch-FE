@@ -1,16 +1,25 @@
 import { authFetch } from '../utils/api';
 
+// PIC structure with name and phone
+export interface PIC {
+  name: string;
+  phone?: string;
+}
+
 export interface VendorGroup {
   id: string;
   group_name: string;
-  pic_names: string[];
+  vendor_phone?: string;
+  pics: PIC[];
+  pic_names: string[]; // For backward compatibility
   created_at: string;
   updated_at: string;
 }
 
 export interface CreateVendorGroupPayload {
   group_name: string;
-  pic_names: string[];
+  vendor_phone?: string;
+  pics: PIC[];
 }
 
 export interface GroupPagination {
@@ -41,8 +50,16 @@ export async function createGroup(data: CreateVendorGroupPayload): Promise<Vendo
   });
 }
 
+export async function updateGroup(id: string, data: CreateVendorGroupPayload): Promise<VendorGroup> {
+  return authFetch<VendorGroup>(`/vendor-groups/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
 export async function deleteGroup(id: string): Promise<void> {
   return authFetch<void>(`/vendor-groups/${id}`, {
     method: 'DELETE',
   });
 }
+

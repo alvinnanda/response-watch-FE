@@ -260,7 +260,7 @@ export function NotificationBell() {
           </div>
 
           {/* Footer */}
-          {notifications.length > 0 && (
+          {/* {notifications.length > 0 && (
             <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/50">
               <button
                 onClick={() => {
@@ -272,7 +272,7 @@ export function NotificationBell() {
                 Lihat semua notifikasi
               </button>
             </div>
-          )}
+          )} */}
         </div>
       )}
     </div>

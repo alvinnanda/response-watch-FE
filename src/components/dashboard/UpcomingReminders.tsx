@@ -21,7 +21,13 @@ export function UpcomingReminders({ start, end, onNoteClick }: UpcomingReminders
       try {
         setLoading(true);
         const data = await getUpcomingReminders(start, end);
-        setReminders(data || []);
+        // Filter out past reminders
+        const now = moment();
+        const futureReminders = (data || []).filter(note => {
+           // Checks if remind_at is after now.
+           return note.remind_at && moment(note.remind_at).isAfter(now);
+        });
+        setReminders(futureReminders);
       } catch (err) {
         console.error('Failed to load upcoming reminders', err);
       } finally {
@@ -58,7 +64,7 @@ export function UpcomingReminders({ start, end, onNoteClick }: UpcomingReminders
                   {moment(note.remind_at).format('MMM D, HH:mm')}
                 </span>
                 {moment(note.remind_at).isBefore(moment()) && (
-                   <span className="text-[10px] font-bold text-red-500 uppercase border border-red-100 bg-red-50 px-1.5 rounded">Overdue</span>
+                   <span className="text-[10px] font-bold text-green-500 uppercase border border-green-100 bg-green-50 px-1.5 rounded">Selesai</span>
                 )}
               </div>
               <h4 className="text-sm font-semibold text-gray-900 line-clamp-1 mb-1" title={note.title}>{note.title}</h4>

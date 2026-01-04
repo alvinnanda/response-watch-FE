@@ -226,10 +226,10 @@ export function DashboardMonitoringPage() {
   // Track page visibility to pause/resume fetching
   const isPageVisible = usePageVisibility();
   
-  // Date filter with defaults: today for both start and end
+  // Date filter with defaults: 3 days (today + 2 days before)
   const today = moment().format('YYYY-MM-DD');
   const minDate = moment().subtract(90, 'days').format('YYYY-MM-DD');
-  const [startDate, setStartDate] = useState(today);
+  const [startDate, setStartDate] = useState(moment().subtract(2, 'days').format('YYYY-MM-DD'));
   const [endDate, setEndDate] = useState(today);
   
   // Single API call for all statuses

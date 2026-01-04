@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button, Card } from '../../components/ui';
 import { getGroups, deleteGroup, type VendorGroup, type GroupPagination } from '../../api/groups';
 import { CreateGroupModal } from '../../components/group/CreateGroupModal';
+import { EditGroupModal } from '../../components/group/EditGroupModal';
 import moment from 'moment';
 
 export function GroupsPage() {
@@ -10,6 +11,7 @@ export function GroupsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<VendorGroup | null>(null);
 
   const fetchGroups = useCallback(async (page = 1) => {
     try {
@@ -100,14 +102,24 @@ export function GroupsPage() {
                         {moment(group.created_at).format('MMM DD, YYYY')}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                          onClick={() => handleDelete(group.id)}
-                        >
-                          Delete
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-blue-500 hover:bg-blue-50 hover:text-blue-600"
+                            onClick={() => setEditingGroup(group)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                            onClick={() => handleDelete(group.id)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -158,6 +170,17 @@ export function GroupsPage() {
             fetchGroups(1);
           }}
           onCancel={() => setShowCreateModal(false)}
+        />
+      )}
+
+      {editingGroup && (
+        <EditGroupModal
+          group={editingGroup}
+          onSuccess={() => {
+            setEditingGroup(null);
+            fetchGroups(pagination.page);
+          }}
+          onCancel={() => setEditingGroup(null)}
         />
       )}
     </div>

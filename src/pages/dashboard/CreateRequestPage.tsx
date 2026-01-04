@@ -61,6 +61,7 @@ export function CreateRequestPage() {
       initialNote?: InitialNoteData;
       isDescriptionSecure?: boolean;
       descriptionPin?: string;
+      scheduledTime?: string;
   }) => {
     setIsLoading(true);
     setError('');
@@ -86,6 +87,8 @@ export function CreateRequestPage() {
         embedded_pic_list: embeddedPicList,
         is_description_secure: data.isDescriptionSecure,
         description_pin: data.descriptionPin,
+        vendor_group_id: data.vendorGroupId ? parseInt(data.vendorGroupId, 10) : undefined,
+        scheduled_time: data.scheduledTime ? new Date(data.scheduledTime).toISOString() : undefined,
       });
 
       // Chain Creation: If initial note exists, create it
