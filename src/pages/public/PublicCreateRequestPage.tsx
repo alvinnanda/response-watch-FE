@@ -2,16 +2,18 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CreateRequestForm, type InitialNoteData } from '../../components/request/CreateRequestForm';
-import { Button, Modal } from '../../components/ui';
+import { Button } from '../../components/ui';
 import { createPublicRequest } from '../../api/requests';
+import { RequestSuccessModal } from '../../components/request/RequestSuccessModal';
+import type { Request } from '../../types/requests';
 import { getDeviceFingerprint } from '../../utils/fingerprint';
 import { Footer } from '../../components/public/Footer';
 import { toast } from 'sonner';
 
 export function PublicCreateRequestPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [successToken, setSuccessToken] = useState<string | null>(null);
-  const [remainingQuota, setRemainingQuota] = useState<number | null>(null);
+  const [createdRequest, setCreatedRequest] = useState<Request | null>(null);
+  const [remainingQuota, setRemainingQuota] = useState<number | undefined>(undefined);
   const [fingerprint, setFingerprint] = useState<string>('');
 
   // Load fingerprint on mount
@@ -39,7 +41,7 @@ export function PublicCreateRequestPage() {
         fingerprint: fingerprint,
       });
       
-      setSuccessToken(response.request.url_token);
+      setCreatedRequest(response.request);
       setRemainingQuota(response.remaining_quota);
     } catch (err: unknown) {
       const error = err as Error & { status?: number; remaining_quota?: number; reset_at?: string };
@@ -131,7 +133,7 @@ export function PublicCreateRequestPage() {
           
           <div className="mt-12 lg:mt-0 lg:col-span-5 relative z-10">
 
-            <div className={`transition-all duration-300 ${successToken ? 'blur-sm pointer-events-none' : ''}`}>
+            <div className={`transition-all duration-300 ${createdRequest ? 'blur-sm pointer-events-none' : ''}`}>
                 <div className="relative">
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-purple-600 rounded-2xl blur opacity-20 transform rotate-1"></div>
                     <div className="relative bg-white rounded-xl shadow-2xl ring-1 ring-gray-900/5">
@@ -141,8 +143,8 @@ export function PublicCreateRequestPage() {
                         </div>
                         <div className="p-6">
                             <CreateRequestForm 
-                                // Key forces component remount (reset) when successToken changes/clears
-                                key={successToken ? 'submitted' : 'new'} 
+                                // Key forces component remount (reset) when createdRequest changes/clears
+                                key={createdRequest ? 'submitted' : 'new'} 
                                 onSubmit={handleSubmit}
                                 isLoading={isLoading}
                                 hideInitialNote={true}
@@ -160,68 +162,13 @@ export function PublicCreateRequestPage() {
       </div>
 
        {/* Success Modal */}
-       <Modal
-          isOpen={!!successToken}
-          onClose={() => setSuccessToken(null)}
-          title="🎉 Request Created!"
-          width="md"
-       >
-         <div className="text-center">
-            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce-slow">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            
-            <p className="text-gray-600 mb-6 font-medium">
-              Tracking link kamu siap! Share ke vendor untuk mulai tracking.
-            </p>
-
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 w-full mb-6 flex items-center justify-between group relative">
-                <div className="text-sm font-mono text-gray-800 break-all text-left flex-1 mr-2 px-1">
-                    {`${import.meta.env.VITE_SHARE_URL || window.location.origin}/share/${successToken}`}
-                </div>
-                <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="shrink-0"
-                    onClick={() => {
-                        const shareUrl = `${import.meta.env.VITE_SHARE_URL || window.location.origin}/share/${successToken}`;
-                        navigator.clipboard.writeText(shareUrl);
-                        // Add toast or visual feedback here if needed, Button usually has ripple
-                    }}
-                >
-                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                  Copy
-                </Button>
-            </div>
-
-            {remainingQuota !== null && (
-                 <p className="text-xs text-center text-gray-500 mb-6 bg-blue-50 py-2 rounded border border-blue-100">
-                    You have <span className="font-bold text-blue-700">{remainingQuota}</span> free requests remaining this month.
-                 </p>
-            )}
-
-            <div className="flex gap-3">
-               <Button 
-                   onClick={() => setSuccessToken(null)}
-                   fullWidth
-                   variant="outline"
-               >
-                   Close
-               </Button>
-               <Button 
-                   onClick={() => {
-                       const shareUrl = `${import.meta.env.VITE_SHARE_URL || window.location.origin}/t/${successToken}`;
-                       window.open(shareUrl, '_blank');
-                   }}
-                   fullWidth
-               >
-                   Open Link
-               </Button>
-            </div>
-         </div>
-       </Modal>
+       <RequestSuccessModal
+          isOpen={!!createdRequest}
+          onClose={() => setCreatedRequest(null)}
+          request={createdRequest}
+          onGoToDashboard={() => navigate('/dashboard')}
+          remainingQuota={remainingQuota}
+       />
     </div>
   );
 

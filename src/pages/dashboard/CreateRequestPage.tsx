@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreateRequestForm } from '../../components/request/CreateRequestForm';
+import { RequestSuccessModal } from '../../components/request/RequestSuccessModal';
 import { createRequest } from '../../api/requests';
 import { getGroups, type VendorGroup } from '../../api/groups';
+import type { Request } from '../../types/requests';
 import moment from 'moment';
 
 import type { InitialNoteData } from '../../components/request/CreateRequestForm';
@@ -11,6 +13,8 @@ export function CreateRequestPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [createdRequest, setCreatedRequest] = useState<Request | null>(null);
 
   // Group Fetching Implementation
   const [groups, setGroups] = useState<VendorGroup[]>([]);
@@ -113,7 +117,8 @@ export function CreateRequestPage() {
           }
       }
 
-      navigate('/dashboard');
+      setCreatedRequest(newRequest);
+      setSuccessModalOpen(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create request');
     } finally {
@@ -147,6 +152,13 @@ export function CreateRequestPage() {
         onLoadMoreGroups={loadMoreGroups}
         hasMoreGroups={hasMore}
         isLoadingGroups={isGroupsLoading}
+      />
+
+      <RequestSuccessModal 
+        isOpen={successModalOpen}
+        onClose={() => navigate('/dashboard')}
+        request={createdRequest}
+        onGoToDashboard={() => navigate('/dashboard')}
       />
     </div>
   );

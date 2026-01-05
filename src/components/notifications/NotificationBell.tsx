@@ -47,13 +47,20 @@ export function NotificationBell() {
     }
   }, []);
 
-  // Fetch unread count on mount - only when page is visible
+  // Single effect for unread count: initial fetch + polling + visibility refresh
   useEffect(() => {
-    if (!isPageVisible) return;
+    if (!isPageVisible) {
+      wasEverHiddenRef.current = true;
+      return;
+    }
     
+    // Check if returning from hidden state (update prev visibility tracker)
+    prevVisibilityRef.current = isPageVisible;
+    
+    // Fetch on mount OR when returning from hidden
     fetchUnreadCount();
     
-    // Poll for unread count every 60 seconds - only when page is visible
+    // Setup polling (60 seconds)
     const interval = setInterval(() => {
       if (isPageVisible) {
         fetchUnreadCount();
@@ -62,25 +69,6 @@ export function NotificationBell() {
     
     return () => clearInterval(interval);
   }, [fetchUnreadCount, isPageVisible]);
-
-  // Refresh when page becomes visible again after being hidden
-  useEffect(() => {
-    // Track when page becomes hidden
-    if (!isPageVisible) {
-      wasEverHiddenRef.current = true;
-    }
-    
-    // Only refresh if page was previously hidden and now visible
-    const wasHidden = prevVisibilityRef.current === false;
-    const shouldRefresh = isPageVisible && wasHidden && wasEverHiddenRef.current;
-    
-    // Update previous visibility
-    prevVisibilityRef.current = isPageVisible;
-    
-    if (shouldRefresh) {
-      fetchUnreadCount();
-    }
-  }, [isPageVisible, fetchUnreadCount]);
 
   // Fetch notifications when dropdown opens
   useEffect(() => {

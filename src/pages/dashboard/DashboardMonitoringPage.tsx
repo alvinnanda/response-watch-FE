@@ -143,7 +143,7 @@ function useAllRequests(startDate: string, endDate: string, isPageVisible: boole
     };
   }, [startDate, endDate, fetchRequests, isPageVisible]);
 
-  // Polling for updates (every 30 seconds)
+  // Polling for updates (every 60 seconds)
   // Pause polling when page is not visible
   useEffect(() => {
     if (!isPageVisible) return;
@@ -158,7 +158,7 @@ function useAllRequests(startDate: string, endDate: string, isPageVisible: boole
         setHasMore(true);
         fetchRequests(false);
       }
-    }, 30000);
+    }, 60000);
     
     return () => clearInterval(interval);
   }, [fetchRequests, isPageVisible]);

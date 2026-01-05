@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Card } from '../../components/ui';
@@ -84,25 +84,28 @@ export function DashboardPage() {
   const [error, setError] = useState('');
   const [showOverview, setShowOverview] = useState(true);
   const [showPremiumStats, setShowPremiumStats] = useState(false);
-  const [showFilters, setShowFilters] = useState(window.innerWidth >= 640);
+  const [showFilters, setShowFilters] = useState(true );
   const [editingRequest, setEditingRequest] = useState<Request | null>(null);
   
   // Note Modal State
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [isEditNoteModalOpen, setIsEditNoteModalOpen] = useState(false);
 
-  // Vendor groups for filter
+  // Vendor groups for filter (lazy loaded)
   const [vendorGroups, setVendorGroups] = useState<VendorGroup[]>([]);
+  const [vendorGroupsLoaded, setVendorGroupsLoaded] = useState(false);
 
   // Search debounce state
   const [searchTerm, setSearchTerm] = useState(filters.search || '');
 
-  // Debounce search
+  // Debounce search - skip if search value is effectively unchanged
   useEffect(() => {
     const timer = setTimeout(() => {
       setFilters(prev => {
-        if (prev.search === searchTerm) return prev;
-        return { ...prev, search: searchTerm, page: 1 };
+        // Treat undefined and empty string as equivalent
+        const currentSearch = prev.search || '';
+        if (currentSearch === searchTerm) return prev;
+        return { ...prev, search: searchTerm || undefined, page: 1 };
       });
     }, 1200);
 
@@ -154,13 +157,34 @@ export function DashboardPage() {
     }
   }, [filters]);
 
-  // Initial load
+  // Track last fetched filter to prevent duplicate fetches
+  const lastFetchedFilterRef = useRef<string | null>(null);
+
+  // Single effect for data fetching - handles both initial load and filter changes
   useEffect(() => {
+    const filterKey = JSON.stringify(filters);
+    
+    // Skip if we already fetched with these exact filters
+    if (lastFetchedFilterRef.current === filterKey) {
+      return;
+    }
+    
+    lastFetchedFilterRef.current = filterKey;
     fetchRequests();
     fetchStats();
-    // Fetch vendor groups for filter
-    getGroups(1, 100).then((res: any) => setVendorGroups(res.vendor_groups)).catch(console.error);
-  }, [fetchRequests, fetchStats]);
+  }, [filters, fetchRequests, fetchStats]);
+
+  // Lazy load vendor groups when filter section opens
+  useEffect(() => {
+    if (showFilters && !vendorGroupsLoaded) {
+      getGroups(1, 100)
+        .then((res: any) => {
+          setVendorGroups(res.vendor_groups);
+          setVendorGroupsLoaded(true);
+        })
+        .catch(console.error);
+    }
+  }, [showFilters, vendorGroupsLoaded]);
 
   // Handle filter change with debounce for search
   const handleFilterChange = (newFilters: Partial<RequestFilters>) => {
@@ -777,7 +801,7 @@ export function DashboardPage() {
               onClick={() => {
                 if (!deletingRequest) return;
                 setIsDeleting(true);
-                deleteRequest(deletingRequest.id)
+                deleteRequest(deletingRequest.uuid)
                   .then(() => {
                     toast.success('Request berhasil dihapus');
                     setDeletingRequest(null);

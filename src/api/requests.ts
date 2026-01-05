@@ -125,8 +125,8 @@ export async function getRequest(id: number): Promise<Request> {
 /**
  * Delete a request
  */
-export async function deleteRequest(id: number): Promise<void> {
-  return authFetch(`/requests/${id}`, { method: 'DELETE' });
+export async function deleteRequest(uuid: string): Promise<void> {
+  return authFetch(`/requests/${uuid}`, { method: 'DELETE' });
 }
 
 /**
