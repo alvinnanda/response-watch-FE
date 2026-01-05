@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import moment from 'moment';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside';
 import { NotificationBell } from '../notifications/NotificationBell';
@@ -151,16 +152,23 @@ export function Header() {
                         </h4>
                         <p className="text-sm text-gray-500 font-medium mt-1">{user?.username}</p>
                         
-                        <div className="mt-4 flex flex-wrap justify-center gap-2">
+                        <div className="mt-4 flex flex-col items-center gap-2">
                             {user?.plan && (
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border uppercase tracking-wide ${
-                                    user.plan === 'enterprise' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                    user.plan === 'pro' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                                    user.plan === 'basic' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
-                                    'bg-green-50 text-green-700 border-green-200' // free
-                                }`}>
-                                    {user.plan} Plan
-                                </span>
+                                <Link to="/pricing" className="group/plan relative">
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border uppercase tracking-wide transition-transform group-hover/plan:scale-105 ${
+                                        user.plan === 'enterprise' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                        user.plan === 'pro' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                        user.plan === 'basic' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                        'bg-green-50 text-green-700 border-green-200' // free
+                                    }`}>
+                                        {user.plan} Plan
+                                    </span>
+                                    {user.subscription_expires_at && (
+                                        <span className="block text-[10px] text-gray-400 mt-1 font-medium">
+                                            Exp: {moment(user.subscription_expires_at).format('DD-MM-YYYY')}
+                                        </span>
+                                    )}
+                                </Link>
                             )}
                         </div>
                     </div>

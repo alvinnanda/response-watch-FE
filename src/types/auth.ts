@@ -10,6 +10,7 @@ export interface User {
   email_verified?: boolean;
   role?: 'admin' | 'user';
   plan?: 'free' | 'basic' | 'pro' | 'enterprise'; // Added plan field
+  subscription_expires_at?: string; // Expiration date
   monthly_request_count?: number; // Added tracking field
   notify_email?: boolean; // Email notification preference
   created_at?: string;
