@@ -110,7 +110,7 @@ export function RequestSuccessModal({ isOpen, onClose, request, onGoToDashboard,
                 onClick={onGoToDashboard}
                 variant="outline"
             >
-                Kembali ke Dashboard
+                Dashboard
             </Button>
         </div>
       </div>

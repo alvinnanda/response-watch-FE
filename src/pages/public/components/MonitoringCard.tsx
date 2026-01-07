@@ -59,14 +59,15 @@ export function MonitoringCard({ request }: MonitoringCardProps) {
       
 
       {request.status === 'done' && (
-        <div className="flex flex-col gap-0.5 text-sm text-green-700 bg-green-50/80 px-3 py-1.5 rounded-lg border border-green-100 w-fit">
+        <div className="flex flex-col gap-0.5 text-sm text-green-600 bg-green-50/80 px-3 py-1.5 rounded-lg border border-green-100 w-fit">
            <div className="flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
             {request.duration_seconds ? (
-              <span className="font-medium text-xs">
-                Done - {moment(request.finished_at).format('D MMM HH:mm')}
+              <span className="flex flex-row items-center gap-1 font-medium text-xs">
+                {moment(request.finished_at).format('DD-MMM')}
+                <span className="text-xs text-green-700">{moment(request.finished_at).format('HH:mm')}</span>
               </span>
             ) : (
               <span className="font-medium text-xs">Selesai</span>
@@ -78,7 +79,9 @@ export function MonitoringCard({ request }: MonitoringCardProps) {
       {request.status === 'waiting' && (
          <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50/80 px-2 py-1.5 rounded-lg border border-amber-100 w-fit">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-            Waiting -<RequestTimer startTime={request.created_at} />
+            Waiting 
+            <span className="font-medium">-</span> 
+            <RequestTimer startTime={request.created_at} />
          </div>
       )}
 

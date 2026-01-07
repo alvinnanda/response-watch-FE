@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Button, Card, Input } from '../../components/ui';
 import { getNotes, deleteNote } from '../../api/notes';
@@ -17,6 +17,25 @@ export function NotesPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounce search input
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    debounceTimerRef.current = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: searchValue, page: 1 }));
+    }, 300);
+    
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchValue]);
 
   const fetchNotes = useCallback(async () => {
     try {
@@ -59,7 +78,7 @@ export function NotesPage() {
     }
   };
 
-  const hasActiveFilters = filters.search || filters.start_date || filters.end_date;
+  const hasActiveFilters = searchValue || filters.start_date || filters.end_date;
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -112,8 +131,8 @@ export function NotesPage() {
                   type="text"
                   placeholder="Search notes..."
                   className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
-                  value={filters.search || ''}
-                  onChange={(e) => handleFilterChange({ search: e.target.value })}
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
                 />
               </div>
 
@@ -135,7 +154,7 @@ export function NotesPage() {
                   {hasActiveFilters && (
                     <Button 
                       variant="ghost" 
-                      onClick={() => setFilters({ page: 1, limit: 12 })}
+                      onClick={() => { setSearchValue(''); setFilters({ page: 1, limit: 12 }); }}
                       className="text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors justify-center"
                     >
                       Clear
@@ -172,7 +191,21 @@ export function NotesPage() {
                onClick={() => { setEditingNote(note); setIsModalOpen(true); }}
               className="h-full cursor-pointer"
             >
-              <Card padding="md" className={`flex flex-col h-full hover:shadow-lg transition-shadow group ${getNoteColor(note.background_color).class} ${getNoteColor(note.background_color).border}`}>
+              <Card padding="md" className={`flex flex-col h-full hover:shadow-lg transition-shadow group relative ${getNoteColor(note.background_color).class} ${getNoteColor(note.background_color).border}`}>
+                 {note.request && (
+                   <a 
+                     href={`/t/${note.request.url_token}`}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     onClick={(e) => e.stopPropagation()}
+                     className="absolute -top-2 -right-[-20px] bg-white border border-gray-200 shadow-sm rounded-full px-2 py-0.5 max-w-[150px] z-10 hover:bg-gray-50 hover:border-t transition-colors"
+                     title={`Request: ${note.request.title}`}
+                   >
+                     <p className="text-[10px] font-semibold truncate text-center">
+                       {note.request.title}
+                     </p>
+                   </a>
+                 )}
                  <div className="flex justify-between items-start mb-2">
                    <div className="flex-grow min-w-0 pr-2">
                       <h3 className="font-semibold text-gray-900 truncate" title={note.title}>{note.title}</h3>

@@ -12,6 +12,11 @@ export interface Note {
   background_color?: string;
   tagline?: string;
   request_uuid?: string;
+  request?: {
+    id: string;
+    title: string;
+    url_token: string;
+  };
   created_at: string;
   updated_at: string;
 }

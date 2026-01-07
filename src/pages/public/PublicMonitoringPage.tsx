@@ -189,7 +189,7 @@ function useAllRequests(username: string, startDate: string, endDate: string, en
 
 export function PublicMonitoringPage() {
   const { username } = useParams<{ username: string }>();
-  const [activeTab, setActiveTab] = useState<'waiting' | 'in_progress' | 'done'>('in_progress');
+  const [activeTab, setActiveTab] = useState<'waiting' | 'in_progress' | 'done'>('waiting');
   const [showOverview, setShowOverview] = useState(false);
   const [showKanban, setShowKanban] = useState(true);
   
