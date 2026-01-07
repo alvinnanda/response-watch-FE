@@ -24,7 +24,11 @@ export function RequestTimer({ startTime, className }: RequestTimerProps) {
   }, [startTime]);
 
   const formatDuration = (seconds: number) => {
-    return moment.utc(seconds * 1000).format('HH:mm:ss');
+    const duration = moment.duration(seconds, 'seconds');
+    const hours = Math.floor(duration.asHours());
+    const mins = duration.minutes();
+    const secs = duration.seconds();
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   if (!startTime) return null;
