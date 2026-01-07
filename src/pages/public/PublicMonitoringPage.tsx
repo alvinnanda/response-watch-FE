@@ -162,36 +162,7 @@ function useAllRequests(username: string, startDate: string, endDate: string, en
   }, [enabled, fetchRequests, isPageVisible]);
 
   // Track if page was ever hidden to prevent refresh on initial mount
-  const wasEverHiddenRef = useRef(false);
-  const prevVisibilityRef = useRef(isPageVisible);
 
-  // Refresh data when page becomes visible again (only after being hidden)
-  useEffect(() => {
-    // Track when page becomes hidden
-    if (!isPageVisible) {
-      wasEverHiddenRef.current = true;
-    }
-    
-    // Only refresh if:
-    // 1. Page is now visible
-    // 2. Page was previously hidden (not initial render)
-    // 3. We have data to refresh
-    const wasHidden = prevVisibilityRef.current === false;
-    const shouldRefresh = isPageVisible && wasHidden && wasEverHiddenRef.current && allRequests.length > 0;
-    
-    // Update previous visibility
-    prevVisibilityRef.current = isPageVisible;
-    
-    if (!enabled || !shouldRefresh) return;
-    
-    // Reset to fetch fresh first page
-    pageRef.current = 1;
-    setPage(1);
-    hasMoreRef.current = true;
-    setHasMore(true);
-    fetchRequests(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPageVisible]); // Only trigger on visibility change
 
   // Group requests by status using useMemo for performance
   const groupedData = useMemo<StatusGroupedData>(() => {
@@ -225,10 +196,11 @@ export function PublicMonitoringPage() {
   // Track page visibility to pause/resume fetching
   const isPageVisible = usePageVisibility();
   
-  // Date filter with defaults: today for both start and end
+  // Date filter with defaults: last 3 days
   const today = moment().format('YYYY-MM-DD');
+  const threeDaysAgo = moment().subtract(2, 'days').format('YYYY-MM-DD');
   const minDate = moment().subtract(90, 'days').format('YYYY-MM-DD');
-  const [startDate, setStartDate] = useState(today);
+  const [startDate, setStartDate] = useState(threeDaysAgo);
   const [endDate, setEndDate] = useState(today);
   
   // Single API call for all statuses - passes visibility to pause fetching when hidden

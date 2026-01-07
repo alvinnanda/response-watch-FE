@@ -275,7 +275,7 @@ export function SmartLinkPage() {
     // We can't easily truncate HTML string safely without a parser.
     // CSS line-clamping or max-height is best for visual truncation.
     const displayDescription = unlockedDescription || request.description;
-    const isLong = displayDescription && displayDescription.length > 150; // simple heuristic for button visibility
+    const isLong = displayDescription && displayDescription.length > 45; // simple heuristic for button visibility
     const isSecured = request.is_description_secure && !pinVerified;
 
     return (
@@ -313,26 +313,18 @@ export function SmartLinkPage() {
             <div className={`relative ${!showDescModal ? 'max-h-[120px] overflow-hidden mask-image-bottom' : ''}`}>
                  <RichTextViewer content={displayDescription || ''} className="text-sm text-gray-600" />
                  {/* Gradient Overlay for truncated view */}
-                 <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none" />
+                 <div hidden={!isLong} className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none" />
             </div>
 
              <button 
                 onClick={() => setShowDescModal(true)}
+                hidden={!isLong}
                 className="mt-2 text-primary text-xs font-semibold hover:underline bg-gray-50 inline-flex items-center gap-0.5"
               >
-                {isLong ? 'Baca selengkapnya' : 'Lihat Detail'}
+                Baca selengkapnya
               </button>
           </div>
         )}
-        {!isSecured && !displayDescription && (
-             <button 
-                onClick={() => setShowDescModal(true)}
-                className="mt-2 text-primary text-sm font-medium hover:underline flex items-center justify-center gap-1 mx-auto"
-              >
-                Lihat Detail
-              </button>
-        )}
-
         {request.followup_link && (
           <div className="mt-4">
              <a 
@@ -446,58 +438,86 @@ export function SmartLinkPage() {
               
               <RequestHeader />
               
-              {/* Timeline */}
-              <div className="text-left bg-gray-50 rounded-xl p-6 space-y-0 mt-6 border border-gray-100 relative overflow-hidden">
-                <div className="absolute top-0 left-8 bottom-0 w-0.5 bg-gray-200/60 z-0"></div>
-                
-                <div className="relative z-10 flex gap-4 pb-8">
-                  <div className="w-4 h-4 mt-1 rounded-full bg-gray-300 ring-4 ring-white shadow-sm shrink-0"></div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900">Permintaan Dibuat</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{moment(request.created_at).format('D MMM YYYY, HH:mm')}</p>
-                  </div>
-                </div>
-                
-                <div className="relative z-10 flex gap-4 pb-8">
-                  <div className="w-4 h-4 mt-1 rounded-full bg-blue-500 ring-4 ring-white shadow-sm shadow-blue-500/30 shrink-0"></div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900">Tanggapan Dimulai</p>
-                    <div className="flex gap-2 mt-1 flex-col">
-                      <span className="text-xs text-gray-500">Oleh {request.start_pic || selectedPic || 'PIC'}.</span>
-                      {request.response_time_seconds && (
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          Waktu Respons: <span className="text-gray-700 font-medium">{formatDurationHuman(request.response_time_seconds)}</span>
-                        </p>
-                      )}
+              {/* Modern Timeline */}
+              <div className="text-left mt-8 px-2">
+                <div className="relative space-y-8 before:absolute before:inset-0 before:ml-2.5 before:w-0.5 before:-translate-x-px before:bg-gradient-to-b before:from-gray-200 before:via-gray-200 before:to-transparent">
+                  
+                  {/* Item 1: Created */}
+                  <div className="relative flex items-start group">
+                    <div className="absolute left-0 h-5 w-5 flex items-center justify-center bg-white rounded-full ring-4 ring-white">
+                      <div className="h-2.5 w-2.5 bg-gray-300 rounded-full group-hover:bg-gray-400 transition-colors"></div>
+                    </div>
+                    <div className="ml-10 w-full">
+                       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+                        <p className="text-sm font-semibold text-gray-900">Permintaan Dibuat</p>
+                        <time className="text-xs text-gray-500 tabular-nums">{moment(request.created_at).format('D MMM YYYY, HH:mm')}</time>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="relative z-10 flex gap-4">
-                  <div className="w-4 h-4 mt-1 rounded-full bg-green-500 ring-4 ring-white shadow-sm shadow-green-500/30 shrink-0"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-gray-900">Masalah Teratasi</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Total durasi: <span className="text-gray-700 font-medium">{formatDurationHuman(elapsedTime)}</span>
-                    </p>
-                    
-                    {/* Resolution notes */}
-                    {request.resolution_notes && (
-                      <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200">
-                        <p className="text-xs font-semibold text-gray-700 mb-1">Catatan Penyelesaian:</p>
-                        <p className="text-xs text-gray-600 whitespace-pre-wrap">{request.resolution_notes}</p>
+                  {/* Item 2: Started */}
+                  <div className="relative flex items-start group">
+                    <div className="absolute left-0 h-5 w-5 flex items-center justify-center bg-white rounded-full ring-4 ring-white">
+                      <div className="h-2.5 w-2.5 bg-blue-500 rounded-full shadow-sm shadow-blue-500/50"></div>
+                    </div>
+                    <div className="ml-10 w-full">
+                       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+                        <p className="text-sm font-semibold text-gray-900">Respons Dimulai</p>
+                         {request.started_at && <time className="text-xs text-gray-500 tabular-nums">{moment(request.started_at).format('HH:mm:ss')}</time>}
                       </div>
-                    )}
-                    
-                    {/* Checkbox issue mismatch */}
-                    {request.checkbox_issue_mismatch && (
-                      <div className="mt-2 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        <span>Instruksi/Judul tidak sesuai dengan kondisi aktual</span>
+                      <div className="mt-1 flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5">
+                           <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600">
+                             {(request.start_pic || selectedPic || '').charAt(0)}
+                           </div>
+                           <span className="text-sm text-gray-700">{request.start_pic || selectedPic || 'PIC'}</span>
+                        </div>
+                        {request.response_time_seconds && (
+                           <p className="text-xs text-gray-500">
+                             Waktu tunggu: <span className="font-medium text-gray-700">{formatDurationHuman(request.response_time_seconds)}</span>
+                           </p>
+                        )}
                       </div>
-                    )}
+                    </div>
+                  </div>
+
+                  {/* Item 3: Done */}
+                  <div className="relative flex items-start group">
+                    <div className="absolute left-0 h-5 w-5 flex items-center justify-center bg-white rounded-full ring-4 ring-white">
+                      <svg className="h-5 w-5 text-green-500 bg-white rounded-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-10 flex-1 min-w-0 pb-2">
+                       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+                        <p className="text-sm font-bold text-gray-900">Selesai Dikerjakan</p>
+                        {request.finished_at && <time className="text-xs text-gray-500 tabular-nums">{moment(request.finished_at).format('HH:mm:ss')}</time>}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Total durasi: <span className="font-bold text-green-700 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">{formatDurationHuman(elapsedTime)}</span>
+                      </p>
+
+                      <div className="mt-3 space-y-3">
+                        {/* Resolution Notes Card */}
+                        {request.resolution_notes && (
+                          <div className="relative bg-white rounded-lg border border-gray-200 p-3 shadow-sm hover:shadow-md transition-shadow max-w-full">
+                            <div className="absolute -left-1.5 top-3 w-3 h-3 bg-white border-l border-b border-gray-200 transform rotate-45"></div>
+                             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Catatan Penyelesaian</p>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed">"{request.resolution_notes}"</p>
+                          </div>
+                        )}
+
+                        {/* Mismatch Warning */}
+                        {request.checkbox_issue_mismatch && (
+                          <div className="flex items-start gap-2 bg-amber-50 rounded-lg p-2.5 border border-amber-100/50 text-amber-800">
+                             <svg className="w-4 h-4 mt-0.5 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span className="text-xs font-medium">Laporan ketidaksesuaian: Instruksi/Judul tidak sesuai kondisi aktual.</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -570,8 +590,11 @@ export function SmartLinkPage() {
 
         {/* PIC Selection Modal */}
         {showPicSelect && request.embedded_pic_list && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 z-50 transition-all">
-            <Card className="w-full max-w-sm" padding="lg">
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 z-50 transition-all cursor-pointer"
+            onClick={() => setShowPicSelect(false)}
+          >
+            <Card className="w-full max-w-sm cursor-default" padding="lg" onClick={(e) => e.stopPropagation()}>
               <h3 className="font-bold text-gray-900 mb-1">Siapa yang menangani ini?</h3>
               <p className="text-gray-500 text-sm mb-5">Pilih nama Anda untuk memulai penghitung waktu.</p>
               
@@ -615,11 +638,14 @@ export function SmartLinkPage() {
 
         {/* Description Modal */}
         {showDescModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 z-50 transition-all">
-            <Card className="w-full max-w-sm md:max-w-2xl max-h-[80vh] flex flex-col relative" padding="sm">
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 z-50 transition-all cursor-pointer"
+            onClick={() => setShowDescModal(false)}
+          >
+            <Card className="w-full max-w-sm md:max-w-2xl max-h-[80vh] flex flex-col relative cursor-default" padding="sm" onClick={(e) => e.stopPropagation()}>
                <button 
                   onClick={() => setShowDescModal(false)}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 bg-white rounded-full z-10"
+                  className="absolute top-4 right-2 text-gray-400 hover:text-gray-600 p-1 bg-white rounded-full z-10"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -650,21 +676,8 @@ export function SmartLinkPage() {
                   <RichTextViewer content={unlockedDescription || request.description || ''} />
                 </div>
                 
-                <div className="mt-6 pt-4 border-t border-gray-100 grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Dibuat Pada</p>
-                    <p className="text-sm font-medium text-gray-900 mt-1">
-                      {moment(request.created_at).format('D MMM, HH:mm')}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Token</p>
-                    <p className="text-sm font-mono text-gray-900 mt-1 bg-gray-50 inline-block px-2 py-0.5 rounded border border-gray-100">
-                      {request.url_token}
-                    </p>
-                  </div>
-                  {request.followup_link && (
-                    <div className="col-span-2">
+                {request.followup_link && (
+                    <div className="mt-6 pt-4 border-t border-gray-100">
                       <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Tautan Tindak Lanjut</p>
                       <a 
                         href={request.followup_link} 
@@ -678,8 +691,7 @@ export function SmartLinkPage() {
                         </svg>
                       </a>
                     </div>
-                  )}
-                </div>
+                )}
               </div>
 
               <div className="mt-2 pt-2">
@@ -693,8 +705,11 @@ export function SmartLinkPage() {
 
         {/* Confirmation Modal */}
         {showFinishConfirm && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all">
-            <Card className="w-full max-w-md" padding="lg">
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all cursor-pointer"
+            onClick={() => setShowFinishConfirm(false)}
+          >
+            <Card className="w-full max-w-md cursor-default" padding="lg" onClick={(e) => e.stopPropagation()}>
               <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -714,8 +729,8 @@ export function SmartLinkPage() {
                 <textarea
                   value={resolutionNotes}
                   onChange={(e) => setResolutionNotes(e.target.value)}
-                  placeholder="Tambahkan catatan tentang penyelesaian request ini..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                  placeholder="Tambahkan catatan tentang penyelesaian request ini... (JANGAN sertakan informasi rahasia apapun, catatan ini dapat dilihat oleh publik melalui tautan pelacakan)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm placeholder:text-gray-400"
                   rows={3}
                 />
               </div>
@@ -759,8 +774,11 @@ export function SmartLinkPage() {
 
         {/* PIN Verification Modal */}
         {showPinModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all">
-            <Card className="w-full max-w-sm text-center" padding="lg">
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all cursor-pointer"
+            onClick={() => setShowPinModal(false)}
+          >
+            <Card className="w-full max-w-sm text-center cursor-default" padding="lg" onClick={(e) => e.stopPropagation()}>
               <button 
                 onClick={() => {
                   setShowPinModal(false);

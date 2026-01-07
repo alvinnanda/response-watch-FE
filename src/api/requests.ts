@@ -218,6 +218,7 @@ export interface PublicRequest {
   reopen_count?: number;
   checkbox_issue_mismatch?: boolean;
   resolution_notes?: string;
+  vendor_name?: string;
 }
 
 

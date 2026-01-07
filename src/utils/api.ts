@@ -1,6 +1,12 @@
 import { toast } from 'sonner';
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// Primary and fallback API URLs from environment
+const API_PRIMARY = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_FALLBACK = import.meta.env.VITE_API_FALLBACK_URL || '';
+const TIMEOUT_MS = 2500; // 5 seconds timeout before trying fallback
+
+// Export for backward compatibility
+export const API_BASE_URL = API_PRIMARY;
 
 export class ApiError extends Error {
   status: number;
@@ -39,14 +45,38 @@ export function removeCookie(name: string) {
 }
 
 /**
- * Common fetch wrapper that handles base URL and error parsing.
- * Now defaults to credentials: 'include' for cookie support.
+ * Fetch with timeout using AbortController
+ */
+async function fetchWithTimeout(
+  url: string, 
+  config: RequestInit, 
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...config,
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    return response;
+  } catch (error) {
+    clearTimeout(timeout);
+    throw error;
+  }
+}
+
+/**
+ * Common fetch wrapper with failover support.
+ * Tries primary API first, falls back to secondary if timeout or error.
  */
 export async function commonFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   const { headers = {}, ...rest } = options;
 
   const config: RequestInit = {
-    credentials: 'include', // Ensure cookies are sent with requests
+    credentials: 'include',
     ...rest,
     headers: {
       'Content-Type': 'application/json',
@@ -56,16 +86,39 @@ export async function commonFetch<T>(endpoint: string, options: FetchOptions = {
 
   let response: Response;
   let slowNetworkTimeout: ReturnType<typeof setTimeout> | undefined;
+  let usedFallback = false;
 
-  const timeoutId = setTimeout(() => {
-    toast.warning("Server is waking up... Upgrade to Enterprise for zero downtime.");
-  }, 8000); // 10s timeout for cold start detection
+  // Show toast if taking too long
+  slowNetworkTimeout = setTimeout(() => {
+    toast.warning("Server is waking up... please wait.");
+  }, 8000);
 
   try {
-    response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    // Try primary API first
+    try {
+      response = await fetchWithTimeout(`${API_PRIMARY}${endpoint}`, config, TIMEOUT_MS);
+      
+      // If server error (5xx), try fallback
+      if (response.status >= 500 && API_FALLBACK) {
+        throw new Error(`Primary API error: ${response.status}`);
+      }
+    } catch (primaryError) {
+      // Only try fallback if configured and primary failed
+      if (API_FALLBACK) {
+        console.log('Primary API failed, trying fallback...', primaryError);
+        usedFallback = true;
+        response = await fetch(`${API_FALLBACK}${endpoint}`, config);
+      } else {
+        throw primaryError;
+      }
+    }
   } finally {
-    clearTimeout(timeoutId);
     if (slowNetworkTimeout) clearTimeout(slowNetworkTimeout);
+  }
+
+  // Log which API was used (for debugging)
+  if (usedFallback) {
+    console.log(`Request served by fallback API: ${endpoint}`);
   }
 
   if (!response.ok) {
@@ -77,15 +130,8 @@ export async function commonFetch<T>(endpoint: string, options: FetchOptions = {
       errorData = data;
       errorMessage = data.message || data.error || errorMessage;
     } catch (e) {
-      // If response is not JSON, use status text
       errorMessage = response.statusText;
     }
-
-    // Redirect to 404 page if resource not found, but exclude auth checks
-    // if (response.status === 404 && !endpoint.includes('/auth/me')) {
-    //   window.location.href = '/not-found';
-    //   throw new ApiError(response.status, errorMessage, errorData);
-    // }
 
     throw new ApiError(response.status, errorMessage, errorData);
   }
@@ -98,7 +144,7 @@ export async function commonFetch<T>(endpoint: string, options: FetchOptions = {
   try {
     return await response.json();
   } catch (e) {
-    return {} as T; // Fallback for empty responses that aren't 204
+    return {} as T;
   }
 }
 

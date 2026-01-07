@@ -16,7 +16,7 @@ export function RequestSuccessModal({ isOpen, onClose, request, onGoToDashboard,
 
   if (!request) return null;
 
-  const requestLink = `${import.meta.env.VITE_SHARE_URL || window.location.origin}/share/${request.url_token}/t/${request.url_token}`;
+  const requestLink = `${import.meta.env.VITE_SHARE_URL || window.location.origin}/share/${request.url_token}`;
   
   const handleCopy = async () => {
     try {

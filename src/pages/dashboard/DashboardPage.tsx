@@ -515,7 +515,7 @@ export function DashboardPage() {
                                     {request.vendor_name}
                                   </span>
                                 ) : (
-                                  <span className="text-gray-400 italic text-xs">No Vendor</span>
+                                  <span className="text-gray-400 italic text-xs">-</span>
                                 )}
                              </div>
 

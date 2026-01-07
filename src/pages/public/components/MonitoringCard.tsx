@@ -2,6 +2,7 @@ import type { PublicRequest } from '../../../api/requests';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
 import { RequestTimer } from './RequestTimer';
+import { formatDurationHuman } from '../../../utils/formatters';
 
 // Configure Indonesian relative time
 moment.updateLocale('id', {
@@ -53,17 +54,19 @@ export function MonitoringCard({ request }: MonitoringCardProps) {
       )}
 
       {request.status === 'done' && (
-        <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50/80 px-3 py-1.5 rounded-lg border border-green-100 w-fit">
-           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-           </svg>
-           {request.duration_seconds ? (
-             <span className="font-mono font-medium">
-               {moment.utc(request.duration_seconds * 1000).format('HH:mm:ss')}
-             </span>
-           ) : (
-             <span className="font-medium text-xs">Selesai</span>
-           )}
+        <div className="flex flex-col gap-0.5 text-sm text-green-700 bg-green-50/80 px-3 py-1.5 rounded-lg border border-green-100 w-fit">
+           <div className="flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {request.duration_seconds ? (
+              <span className="font-medium text-xs">
+                {formatDurationHuman(request.duration_seconds)} - {moment(request.finished_at).format('D MMM HH:mm')}
+              </span>
+            ) : (
+              <span className="font-medium text-xs">Selesai</span>
+            )}
+           </div>
         </div>
       )}
       
@@ -74,15 +77,13 @@ export function MonitoringCard({ request }: MonitoringCardProps) {
          </div>
       )}
 
-      {request.status !== 'waiting' && request.start_pic && (
+      {request.status !== 'waiting' && (
         <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-500">
-           <div className="flex items-center gap-1.5">
-            <div className="flex justify-between items-start mb-2">
-                <span className="text-xs text-gray-400 font-medium tracking-tight">
-                  {moment(request.created_at).fromNow(true)}
-                </span>
-              </div>
-           </div>
+           
+             <div className="flex items-center gap-1">{request.vendor_name && (
+               <span className="text-xs text-gray-500 font-medium">{request.vendor_name}</span>
+              )}
+             </div>
            {request.start_pic && (
                 <div className="flex items-center gap-1 pl-2 border-l border-gray-100">
                     <span className="text-gray-400">by</span>
