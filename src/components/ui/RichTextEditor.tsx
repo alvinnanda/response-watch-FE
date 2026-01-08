@@ -1,6 +1,7 @@
 import { useEditor, EditorContent, ReactNodeViewRenderer } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { Color } from '@tiptap/extension-color';
@@ -26,6 +27,8 @@ interface RichTextEditorProps {
 export function RichTextEditor({ value, onChange, placeholder = 'Write something...', className }: RichTextEditorProps) {
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
   const editor = useEditor({
@@ -47,6 +50,13 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write something
         openOnClick: false,
         HTMLAttributes: {
           class: 'text-blue-500 hover:underline cursor-pointer',
+        },
+      }),
+      Image.configure({
+        inline: true,
+        allowBase64: true,
+        HTMLAttributes: {
+          class: 'rounded-lg max-w-full h-auto',
         },
       }),
       Placeholder.configure({
@@ -138,6 +148,18 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write something
     setIsLinkModalOpen(false);
   };
 
+  const openImageModal = () => {
+    setImageUrl('');
+    setIsImageModalOpen(true);
+  };
+
+  const handleSaveImage = () => {
+    if (imageUrl) {
+        editor.chain().focus().setImage({ src: imageUrl }).run();
+    }
+    setIsImageModalOpen(false);
+  };
+
 
   const ToolbarButton = ({ onClick, isActive, children, title }: { onClick: () => void, isActive?: boolean, children: React.ReactNode, title?: string }) => (
     <button
@@ -222,6 +244,10 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write something
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
         </ToolbarButton>
 
+        <ToolbarButton onClick={openImageModal} isActive={editor.isActive('image')} title="Image">
+           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+        </ToolbarButton>
+
         <div className="w-px h-5 bg-gray-200 mx-1" />
         
         <div className="flex items-center gap-1 border border-gray-200 rounded-md bg-white px-1 h-8" title="Text Color">
@@ -269,6 +295,35 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write something
                 </Button>
                 <Button variant="primary" onClick={handleSaveLink} size="sm">
                     Save
+                </Button>
+            </div>
+        </div>
+      </Modal>
+
+      {/* Image Modal */}
+      <Modal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        title="Insert Image"
+        width="sm"
+      >
+        <div className="space-y-4">
+            <Input
+                label="Image URL"
+                placeholder="https://example.com/image.jpg"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                autoFocus
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveImage();
+                }}
+            />
+            <div className="flex justify-end gap-2">
+                <Button variant="ghost" onClick={() => setIsImageModalOpen(false)} size="sm">
+                    Cancel
+                </Button>
+                <Button variant="primary" onClick={handleSaveImage} size="sm">
+                    Insert
                 </Button>
             </div>
         </div>

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useEditor, EditorContent, ReactNodeViewRenderer } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { Color } from '@tiptap/extension-color';
@@ -82,9 +83,11 @@ export function NoteEditor({
     const [webhookPayload, setWebhookPayload] = useState(initialData?.webhook_payload || '');
     const [whatsappPhone, setWhatsappPhone] = useState(initialData?.whatsapp_phone || '');
 
-    // Link Modal State
+    // Link & Image Modal State
     const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
     const [linkUrl, setLinkUrl] = useState('');
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+    const [imageUrl, setImageUrl] = useState('');
 
     // ---- Tiptap Editor Setup ----
     const editor = useEditor({
@@ -102,6 +105,13 @@ export function NoteEditor({
             Link.configure({
                 openOnClick: false,
                 HTMLAttributes: { class: 'text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors' },
+            }),
+            Image.configure({
+                inline: true,
+                allowBase64: true,
+                HTMLAttributes: {
+                  class: 'rounded-lg max-w-full h-auto',
+                },
             }),
             Placeholder.configure({
                 placeholder: 'Start writing your amazing note...',
@@ -206,6 +216,19 @@ export function NoteEditor({
         }
         setIsLinkModalOpen(false);
     };
+    const openImageModal = () => {
+        setImageUrl('');
+        setIsImageModalOpen(true);
+    };
+
+    const handleSaveImage = () => {
+        if (!editor || !imageUrl) {
+            setIsImageModalOpen(false);
+            return;
+        }
+        editor.chain().focus().setImage({ src: imageUrl }).run();
+        setIsImageModalOpen(false);
+    };
 
 
     // ---- Layout ----
@@ -216,7 +239,12 @@ export function NoteEditor({
             
             {/* --- LEFT: MAIN EDITOR AREA --- */}
             <div className={`flex-1 flex flex-col h-full overflow-hidden relative ${theme.class} transition-all duration-500`}>
-                <EditorToolbar editor={editor} onLinkParams={openLinkModal} className={theme.class} />
+                <EditorToolbar 
+                    editor={editor} 
+                    onLinkParams={openLinkModal} 
+                    onImageClick={openImageModal}
+                    className={theme.class} 
+                />
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto px-4 py-6 scroll-smooth">
                     <div className="max-w-3xl mx-auto space-y-4">
@@ -469,6 +497,29 @@ export function NoteEditor({
                     <div className="flex justify-end gap-2">
                         <Button variant="ghost" onClick={() => setIsLinkModalOpen(false)} size="sm">Cancel</Button>
                         <Button variant="primary" onClick={handleSaveLink} size="sm">Save</Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Image Modal */}
+            <Modal
+                isOpen={isImageModalOpen}
+                onClose={() => setIsImageModalOpen(false)}
+                title="Insert Image"
+                width="sm"
+            >
+                <div className="space-y-4">
+                    <Input
+                        label="Image URL"
+                        placeholder="https://example.com/image.jpg"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        autoFocus
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSaveImage(); }}
+                    />
+                    <div className="flex justify-end gap-2">
+                        <Button variant="ghost" onClick={() => setIsImageModalOpen(false)} size="sm">Cancel</Button>
+                        <Button variant="primary" onClick={handleSaveImage} size="sm">Insert</Button>
                     </div>
                 </div>
             </Modal>
