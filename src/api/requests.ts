@@ -262,10 +262,10 @@ export async function finishPublicRequest(
 /**
  * Verify PIN for secured description
  */
-export async function verifyDescriptionPin(token: string, pin: string): Promise<{ success: boolean; description?: string }> {
+export async function verifyDescriptionPin(token: string, pin: string, fingerprint: string): Promise<{ success: boolean; description?: string }> {
   return commonFetch<{ success: boolean; description?: string }>(`/public/t/${token}/verify-pin`, {
     method: 'POST',
-    body: JSON.stringify({ pin }),
+    body: JSON.stringify({ pin, fingerprint }),
   });
 }
 

@@ -96,7 +96,7 @@ export async function commonFetch<T>(endpoint: string, options: FetchOptions = {
   try {
     // Try primary API first
     try {
-      response = await fetchWithTimeout(`${API_PRIMARY}${endpoint}`, config, TIMEOUT_MS);
+      response = !config.method || config.method === 'GET' ? await fetchWithTimeout(`${API_PRIMARY}${endpoint}`, config, TIMEOUT_MS) : await fetch(`${API_PRIMARY}${endpoint}`, config);
       
       // If server error (5xx), try fallback (only for GET requests)
       if (response.status >= 500 && API_FALLBACK && (!config.method || config.method === 'GET')) {

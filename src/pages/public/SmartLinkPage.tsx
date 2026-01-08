@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button, Card } from '../../components/ui';
 import { getPublicRequest, startPublicRequest, finishPublicRequest, verifyDescriptionPin, type PublicRequest } from '../../api/requests';
+import { getDeviceFingerprint } from '../../utils/fingerprint';
 import moment from 'moment';
 
 type RequestStatus = 'waiting' | 'in_progress' | 'done' | 'scheduled';
@@ -122,8 +123,14 @@ export function SmartLinkPage() {
   // Finish request state
   const [checkboxIssueMismatch, setCheckboxIssueMismatch] = useState(false);
   const [resolutionNotes, setResolutionNotes] = useState('');
+  const [fingerprint, setFingerprint] = useState<string>('');
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Load fingerprint on mount
+  useEffect(() => {
+    getDeviceFingerprint().then(setFingerprint);
+  }, []);
 
   // Fetch request on mount
   useEffect(() => {
@@ -842,7 +849,7 @@ export function SmartLinkPage() {
                   setPinError('');
                   
                   try {
-                    const result = await verifyDescriptionPin(token, enteredPin);
+                    const result = await verifyDescriptionPin(token, enteredPin, fingerprint);
                     if (result.success && result.description) {
                       setUnlockedDescription(result.description);
                       setPinVerified(true);
@@ -851,8 +858,8 @@ export function SmartLinkPage() {
                     } else {
                       setPinError('PIN salah. Silakan coba lagi.');
                     }
-                  } catch {
-                    setPinError('PIN salah. Silakan coba lagi.');
+                  } catch (err: any) {
+                    setPinError(err.message || 'PIN salah. Silakan coba lagi.');
                   } finally {
                     setPinLoading(false);
                   }
