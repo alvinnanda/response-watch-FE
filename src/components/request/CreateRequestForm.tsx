@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Button, Input, Card } from '../ui';
 import { InfiniteSelect } from '../ui/InfiniteSelect';
 import { type NoteEditorData } from '../note/NoteEditor';
-import { RichTextEditor } from '../ui/RichTextEditor';
 import { EditNoteModal } from '../note/EditNoteModal';
 
 interface VendorGroupOption {
@@ -43,6 +42,8 @@ interface CreateRequestFormProps {
     vendorGroupId?: string; 
   };
   hideInitialNote?: boolean;
+  hideSecureOptions?: boolean;
+  hideScheduleOption?: boolean;
 }
 
 export function CreateRequestForm({ 
@@ -54,10 +55,14 @@ export function CreateRequestForm({
   hasMoreGroups = false,
   isLoadingGroups = false,
   initialValues,
-  hideInitialNote = false
+  hideInitialNote = false,
+  hideSecureOptions = false,
+  hideScheduleOption = false
 }: CreateRequestFormProps) {
+  /* Removed misplaced import */
   const [activeTab, setActiveTab] = useState<'details' | 'note'>('details');
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [isDescriptionModalOpen, setIsDescriptionModalOpen] = useState(false);
   
   // Request State
   const [title, setTitle] = useState(initialValues?.title || '');
@@ -157,9 +162,9 @@ export function CreateRequestForm({
         )}
 
         {/* Content Area */}
-        <div className="p-6">
+        <div className="p-0">
             {activeTab === 'details' ? (
-                <div className="space-y-5 animate-in fade-in duration-200">
+                <div className="p-6 space-y-6 animate-in fade-in duration-200">
                     <Input
                         label="Judul Request"
                         placeholder="e.g., Server Down Issue"
@@ -168,68 +173,113 @@ export function CreateRequestForm({
                         required
                     />
                     
-                    <div className="w-full">
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Deskripsi (Optional)
-                        </label>
-                            <div className="h-[300px]">
-                                <RichTextEditor
-                                    value={description}
-                                    onChange={setDescription}
-                                    placeholder="Additional details about the issue..."
-                                    className="h-full border-gray-300 shadow-sm"
-                                />
-                            </div>
-                    </div>
+                            <div className="w-full">
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Deskripsi (Optional)
+                                    </label>
+                                    {description && (
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsDescriptionModalOpen(true)}
+                                                className="text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-1"
+                                            >
+                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                </svg>
+                                                Edit
+                                            </button>
+                                            <span className="text-gray-300">|</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setDescription('')}
+                                                className="text-xs font-medium text-red-500 hover:text-red-600"
+                                            >
+                                                Clear
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
 
-                    <div className="flex">
-                        <button
-                            type="button"
-                            onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
-                            className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors focus:outline-none"
-                        >
-                            {isAdvancedOpen ? (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                            ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                            )}
-                            More Options
-                        </button>
+                                {!description ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsDescriptionModalOpen(true)}
+                                        className="w-full p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-gray-50 transition-all text-center group"
+                                    >
+                                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                           <svg className="w-6 h-6 text-gray-400 group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </div>
+                                        <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900">Click to add detailed description</span>
+                                        <p className="text-xs text-gray-400 mt-1">Opens in a full-screen editor</p>
+                                    </button>
+                                ) : (
+                                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                                        <div className="p-4 bg-gray-50/50 max-h-[300px] overflow-y-auto prose prose-sm max-w-none text-gray-600 leading-normal prose-p:my-1">
+                                            <div dangerouslySetInnerHTML={{ __html: description }} />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                    <div className="relative py-2">
+                        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                            <div className="w-full border-t border-gray-200"></div>
+                        </div>
+                        <div className="relative flex justify-center">
+                            <button
+                                type="button"
+                                onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
+                                className="inline-flex items-center gap-x-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-semibold text-gray-600 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-all hover:text-gray-900"
+                            >
+                                {isAdvancedOpen ? 'Show Less' : 'More Options'}
+                                <svg 
+                                    className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isAdvancedOpen ? 'rotate-180' : ''}`} 
+                                    viewBox="0 0 20 20" 
+                                    fill="currentColor" 
+                                    aria-hidden="true"
+                                >
+                                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
                     {isAdvancedOpen && (
-                        <div className="space-y-5 pl-2 border-l-2 border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
-                            <Input
-                            label="Followup Link (Optional)"
-                            placeholder="e.g. Jira Ticket, Asana Task, Docs URL..."
-                            value={followupLink}
-                            onChange={(e) => setFollowupLink(e.target.value)}
-                            helperText="Add a link to your project management tool for tracking."
-                            />
-
+                        <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
                             {onLoadMoreGroups && (
-                            <div className="w-full space-y-3">
-                                <div className="flex gap-4 mb-2">
-                                    <label className="flex items-center gap-2 text-sm text-gray-700 font-medium cursor-pointer">
-                                        <input 
-                                            type="radio" 
-                                            name="assignmentMode" 
-                                            value="group" 
-                                            checked={assignmentMode === 'group'}
-                                            onChange={() => setAssignmentMode('group')}
-                                            className="accent-black h-4 w-4" 
-                                        />
+                            <div className="w-full bg-gray-50/50 rounded-lg p-5 border border-gray-100 space-y-4">
+                                <h4 className="text-sm font-semibold text-gray-900">Assignment</h4>
+                                <div className="flex gap-6">
+                                    <label className="flex items-center gap-2 text-sm text-gray-700 font-medium cursor-pointer group hover:text-gray-900">
+                                        <div className="relative flex items-center">
+                                            <input 
+                                                type="radio" 
+                                                name="assignmentMode" 
+                                                value="group" 
+                                                checked={assignmentMode === 'group'}
+                                                onChange={() => setAssignmentMode('group')}
+                                                className="peer sr-only" 
+                                            />
+                                            <div className="w-4 h-4 border border-gray-300 rounded-full peer-checked:border-primary peer-checked:border-4 transition-all bg-white"></div>
+                                        </div>
                                         Assign to Group
                                     </label>
-                                    <label className="flex items-center gap-2 text-sm text-gray-700 font-medium cursor-pointer">
-                                        <input 
-                                            type="radio" 
-                                            name="assignmentMode" 
-                                            value="pic" 
-                                            checked={assignmentMode === 'pic'}
-                                            onChange={() => setAssignmentMode('pic')}
-                                            className="accent-black h-4 w-4" 
-                                        />
+                                    <label className="flex items-center gap-2 text-sm text-gray-700 font-medium cursor-pointer group hover:text-gray-900">
+                                        <div className="relative flex items-center">
+                                            <input 
+                                                type="radio" 
+                                                name="assignmentMode" 
+                                                value="pic" 
+                                                checked={assignmentMode === 'pic'}
+                                                onChange={() => setAssignmentMode('pic')}
+                                                className="peer sr-only" 
+                                            />
+                                            <div className="w-4 h-4 border border-gray-300 rounded-full peer-checked:border-primary peer-checked:border-4 transition-all bg-white"></div>
+                                        </div>
                                         Assign to PIC
                                     </label>
                                 </div>
@@ -249,12 +299,12 @@ export function CreateRequestForm({
                                 />
 
                                 {assignmentMode === 'pic' && selectedGroupId && (
-                                    <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+                                    <div className="animate-in fade-in slide-in-from-top-1 duration-200 pt-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                             Select PIC
                                         </label>
                                         <select
-                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                                             value={selectedPic}
                                             onChange={(e) => setSelectedPic(e.target.value)}
                                         >
@@ -269,7 +319,7 @@ export function CreateRequestForm({
                                     </div>
                                 )}
 
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-gray-500 pt-1 border-t border-gray-200/50">
                                     {assignmentMode === 'group' 
                                         ? "Request will be visible to all members of the group." 
                                         : "Request will be assigned directly to the selected PIC."}
@@ -277,7 +327,28 @@ export function CreateRequestForm({
                             </div>
                             )}
 
+                            <div className="pt-4 border-t border-gray-100">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                                        </svg>
+                                        Link Tracking / Follow-up (Optional)
+                                    </div>
+                                </label>
+                                <Input
+                                    placeholder="e.g. Jira Ticket, Asana Task, Docs URL..."
+                                    value={followupLink}
+                                    onChange={(e) => setFollowupLink(e.target.value)}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Add a link to your project management tool for tracking.
+                                </p>
+                            </div>
+                            
                             {/* Secure Description Toggle */}
+                            {!hideSecureOptions && (
                             <div className="pt-4 border-t border-gray-100">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
@@ -364,8 +435,10 @@ export function CreateRequestForm({
                                 </div>
                               )}
                             </div>
+                            )}
 
                             {/* Scheduled Time Picker */}
+                            {!hideScheduleOption && (
                             <div className="pt-4 border-t border-gray-100">
                               <label className="block text-sm font-medium text-gray-700 mb-2">
                                 <div className="flex items-center gap-2">
@@ -385,13 +458,14 @@ export function CreateRequestForm({
                                 Vendor tidak dapat memulai request sebelum waktu yang dijadwalkan
                               </p>
                             </div>
+                            )}
                         </div>
                     )}
                 </div>
             ) : (
-                <div className="min-h-[400px] flex items-start justify-center p-4">
+                <div className="flex items-start justify-center p-4">
                     {!noteData.content ? (
-                         <div className="text-center w-full max-w-md mt-10 p-8 border-2 border-dashed border-gray-200 rounded-xl hover:border-gray-300 transition-colors">
+                         <div className="text-center w-full max-w-md mt-2 p-8 border-2 border-dashed border-gray-200 rounded-xl hover:border-gray-300 transition-colors">
                             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -401,13 +475,32 @@ export function CreateRequestForm({
                             <p className="text-sm text-gray-500 mb-6">
                                 Add a note to start this request with context, instructions, or initial findings.
                             </p>
-                            <Button
-                                type="button"
-                                onClick={() => setIsNoteModalOpen(true)}
-                                variant="outline"
-                            >
-                                <span className="mr-2">+</span> Add Note
-                            </Button>
+                            <div className="flex flex-col gap-2 w-full max-w-xs mx-auto">
+                                <Button
+                                    type="button"
+                                    onClick={() => setIsNoteModalOpen(true)}
+                                    variant="outline"
+                                    className="w-full justify-center"
+                                >
+                                    <span className="mr-2">+</span> Buat Note
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setNoteData({
+                                        title: title || 'Untitled Note',
+                                        content: description || '<p>Refer to request description.</p>',
+                                        background_color: 'white'
+                                    })}
+                                    disabled={!title && !description}
+                                    className="w-full justify-center text-gray-700"
+                                >
+                                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                    Samakan dgn Request
+                                </Button>
+                            </div>
                         </div>
                     ) : (
                         <div className="w-full max-w-2xl bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm animate-in fade-in slide-in-from-bottom-2">
@@ -487,6 +580,23 @@ export function CreateRequestForm({
              setIsNoteModalOpen(false);
         }}
         note={null} 
+    />
+    
+    <EditNoteModal
+        isOpen={isDescriptionModalOpen}
+        onClose={() => setIsDescriptionModalOpen(false)}
+        onSuccess={() => {/* Handled by onSave */}}
+        initialData={{ 
+            content: description, 
+            title: title ? `Description: ${title}` : 'Request Description', 
+            background_color: 'white' 
+        }}
+        onSave={(data) => {
+             setDescription(data.content);
+             setIsDescriptionModalOpen(false);
+        }}
+        note={null} 
+        variant="simple"
     />
     </>
   );

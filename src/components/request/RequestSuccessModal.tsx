@@ -11,7 +11,7 @@ interface RequestSuccessModalProps {
   remainingQuota?: number;
 }
 
-export function RequestSuccessModal({ isOpen, onClose, request, onGoToDashboard, remainingQuota }: RequestSuccessModalProps) {
+export function RequestSuccessModal({ isOpen, onClose, request, remainingQuota }: RequestSuccessModalProps) {
   const [copied, setCopied] = useState(false);
 
   if (!request) return null;
@@ -107,10 +107,14 @@ export function RequestSuccessModal({ isOpen, onClose, request, onGoToDashboard,
                 WhatsApp
             </Button>
             <Button
-                onClick={onGoToDashboard}
+                onClick={() => window.open(requestLink, '_blank')}
                 variant="outline"
+                className="gap-2"
             >
-                Dashboard
+                Open Link
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
             </Button>
         </div>
       </div>

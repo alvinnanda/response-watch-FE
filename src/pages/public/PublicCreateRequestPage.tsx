@@ -148,6 +148,8 @@ export function PublicCreateRequestPage() {
                                 onSubmit={handleSubmit}
                                 isLoading={isLoading}
                                 hideInitialNote={true}
+                                hideSecureOptions={true}
+                                hideScheduleOption={true}
                             />
                         </div>
                     </div>

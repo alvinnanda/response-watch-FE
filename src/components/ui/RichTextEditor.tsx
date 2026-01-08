@@ -183,7 +183,7 @@ export function RichTextEditor({ value, onChange, placeholder = 'Write something
 
         <div className="w-px h-5 bg-gray-200 mx-1" />
         <ToolbarButton onClick={toggleBold} isActive={editor.isActive('bold')} title="Bold">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 12h8a4 4 0 100-8H6v8zm0 0v8" /></svg>
+          <span className="font-bold text-lg leading-none w-4 h-4 flex items-center justify-center">B</span>
         </ToolbarButton>
         <ToolbarButton onClick={toggleItalic} isActive={editor.isActive('italic')} title="Italic">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 4h-9m4 16h5M10 4L6 20" /></svg>

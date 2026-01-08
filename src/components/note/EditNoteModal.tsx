@@ -16,10 +16,13 @@ interface EditNoteModalProps {
   onSuccess: () => void;
   onSave?: (data: NoteEditorData) => Promise<void> | void; // Optional override for API save
   requestUUID?: string; // Optional context linking
+  variant?: 'default' | 'simple'; // Simple mode hides title/tagline/settings
 }
 
-export function EditNoteModal({ note, initialData, isOpen, onClose, onSuccess, onSave, requestUUID }: EditNoteModalProps) {
+export function EditNoteModal({ note, initialData, isOpen, onClose, onSuccess, onSave, requestUUID, variant = 'default' }: EditNoteModalProps) {
   const { user } = useAuth();
+  const isSimpleMode = variant === 'simple';
+
   // Determine initial data strictly from props to avoid stale state issues during remount
   const initialEditorData: NoteEditorData = useMemo(() => {
      if (note) {
@@ -92,6 +95,7 @@ export function EditNoteModal({ note, initialData, isOpen, onClose, onSuccess, o
         return;
     }
     
+    // In simple mode, title might be hidden/empty, so allow saving if content exists
     if (!editorData.title.trim() && !editorData.content.trim()) {
          // Empty note
          onClose();
@@ -176,68 +180,91 @@ export function EditNoteModal({ note, initialData, isOpen, onClose, onSuccess, o
   // State for settings visibility
   const [showSettings, setShowSettings] = useState(false);
 
-  // ... (rest of handleSubmit etc) ...
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-      <div className={`rounded-xl shadow-xl w-full max-w-4xl h-[95vh] flex flex-col overflow-hidden animate-slide-up relative transition-colors duration-300 ${getNoteColor(editorData.background_color).class} border ${getNoteColor(editorData.background_color).border}`}>
-        {/* Header Actions (Absolute) */}
-        <div className="absolute top-4 right-4 z-10 flex gap-2">
-            <button
-                onClick={() => setShowSettings(!showSettings)}
-                className={`p-2 rounded-full transition-all flex items-center gap-2 ${showSettings ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:text-gray-600 hover:bg-black/5'}`}
-                title="Toggle Settings"
-            >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                {showSettings && <span className="text-sm font-medium pr-1">Settings</span>}
-            </button>
-            <button 
-                onClick={onClose} 
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-black/5 rounded-full transition-all"
-                title="Close"
-            >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-0 md:p-4 animate-fade-in transition-all">
+      <div className={`w-full h-full md:h-[95vh] md:max-w-5xl md:rounded-xl shadow-2xl flex flex-col overflow-hidden animate-slide-up relative bg-white transition-colors duration-300 border ${getNoteColor(editorData.background_color).border}`}>
+        
+        {/* --- HEADER: ALWAYS VISIBLE --- */}
+        <div className={`flex-shrink-0 px-4 py-3 border-b flex items-center justify-between transition-colors duration-300 ${getNoteColor(editorData.background_color).class} ${getNoteColor(editorData.background_color).border}`}>
+            {/* Left: Status / Title Hint */}
+            <div className="flex items-center gap-3">
+                 <div className={`w-2 h-2 rounded-full ${isDirty ? 'bg-amber-400' : 'bg-green-400'}`} />
+                 <span className="text-sm font-medium text-gray-500">
+                    {note ? (isDirty ? 'Unsaved Changes' : 'All changes saved') : ''}
+                 </span>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2">
+                 {!isSimpleMode && (
+                 <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className={`
+                        p-2 rounded-md transition-all flex items-center gap-2 text-sm font-medium
+                        ${showSettings ? 'bg-gray-900/5 text-gray-900' : 'text-gray-500 hover:bg-gray-900/5 hover:text-gray-700'}
+                    `}
+                    title="Toggle Settings"
+                >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="hidden sm:inline">Settings</span>
+                </button>
+                 )}
+                
+                {!isSimpleMode && <div className="w-px h-4 bg-gray-300 mx-1" />}
+
+                <button 
+                    onClick={onClose} 
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                    title="Close Editor"
+                >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
         </div>
 
-        {/* Note Editor Component - SCROLLABLE CONTAINER */}
-        <div className="flex-1 overflow-y-auto relative [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-black/5 hover:[&::-webkit-scrollbar-thumb]:bg-black/10 [&::-webkit-scrollbar-thumb]:rounded-full">
+        {/* --- BODY: SCROLLABLE EDITOR --- */}
+        <div className="flex-1 overflow-hidden relative flex flex-col">
             <NoteEditor 
-                key={note?.id || 'new-note'}
+                key={note?.id || ''}
                 initialData={initialEditorData}
                 onChange={setEditorData} 
-                isSettingsOpen={showSettings}
+                isSettingsOpen={showSettings && !isSimpleMode}
+                onSettingsChange={setShowSettings}
                 hideReminder={!['pro', 'enterprise'].includes(user?.plan || 'free')}
-                className="min-h-full border-none rounded-none shadow-none"
+                hideTitle={isSimpleMode}
+                hideTagline={isSimpleMode}
+                hideSidebar={isSimpleMode}
+                className="flex-1"
             />
         </div>
 
-        {/* Footer Actions */}
+        {/* --- FOOTER: ACTIONS --- */}
         {(isDirty || !note) && (
-            <div className={`flex-shrink-0 px-10 py-4 flex justify-between items-center border-t ${getNoteColor(editorData.background_color).border} ${getNoteColor(editorData.background_color).class} z-20`}>
-                    <div className="text-xs text-gray-500 font-medium italic">
-                    {note ? `Last edited ${moment(note.updated_at).fromNow()}` : 'Draft'}
+            <div className={`flex-shrink-0 px-6 py-4 flex justify-between items-center border-t transition-colors duration-300 z-40 bg-white/80 backdrop-blur-md ${getNoteColor(editorData.background_color).border}`}>
+                    <div className="hidden sm:block text-xs text-gray-500 font-medium italic">
+                        {note ? `Last edited ${moment(note.updated_at).fromNow()}` : 'Unsaved Draft'}
                     </div>
-                    <div className="flex gap-3">
-                    <Button type="button" variant="ghost" onClick={onClose} disabled={loading} className="hover:bg-black/5 text-gray-600">
-                        Discard
-                    </Button>
-                    <Button 
-                        type="button" 
-                        variant="primary" 
-                        disabled={loading} 
-                        onClick={() => handleSubmit()}
-                        className="px-8 shadow-xl shadow-primary/20"
-                    >
-                        {loading ? 'Saving...' : 'Save Note'}
-                    </Button>
+                    <div className="flex gap-3 w-full sm:w-auto justify-end">
+                        <Button type="button" variant="ghost" onClick={onClose} disabled={loading} className="hover:bg-red-50 hover:text-red-600">
+                            Discard
+                        </Button>
+                        <Button 
+                            type="button" 
+                            variant="primary" 
+                            disabled={loading} 
+                            onClick={() => handleSubmit()}
+                            className="px-6 shadow-lg shadow-primary/20 min-w-[120px]"
+                        >
+                            {loading ? 'Saving...' : 'Save'}
+                        </Button>
                     </div>
             </div>
         )}

@@ -8,9 +8,13 @@ import type { Request } from '../../types/requests';
 import moment from 'moment';
 
 import type { InitialNoteData } from '../../components/request/CreateRequestForm';
+import { useAuth } from '../../contexts/AuthContext';
 
 export function CreateRequestPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isProPlus = user?.plan === 'pro' || user?.plan === 'enterprise';
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successModalOpen, setSuccessModalOpen] = useState(false);
@@ -152,6 +156,7 @@ export function CreateRequestPage() {
         onLoadMoreGroups={loadMoreGroups}
         hasMoreGroups={hasMore}
         isLoadingGroups={isGroupsLoading}
+        hideSecureOptions={!isProPlus}
       />
 
       <RequestSuccessModal 

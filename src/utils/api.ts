@@ -98,13 +98,15 @@ export async function commonFetch<T>(endpoint: string, options: FetchOptions = {
     try {
       response = await fetchWithTimeout(`${API_PRIMARY}${endpoint}`, config, TIMEOUT_MS);
       
-      // If server error (5xx), try fallback
-      if (response.status >= 500 && API_FALLBACK) {
+      // If server error (5xx), try fallback (only for GET requests)
+      if (response.status >= 500 && API_FALLBACK && (!config.method || config.method === 'GET')) {
         throw new Error(`Primary API error: ${response.status}`);
       }
     } catch (primaryError) {
-      // Only try fallback if configured and primary failed
-      if (API_FALLBACK) {
+      // Only try fallback if configured, primary failed, and it's a GET request
+      // This prevents mutations (POST, PUT, DELETE) from being retried on fallback
+      const isGetRequest = !config.method || config.method === 'GET';
+      if (API_FALLBACK && isGetRequest) {
         console.log('Primary API failed, trying fallback...', primaryError);
         usedFallback = true;
         response = await fetch(`${API_FALLBACK}${endpoint}`, config);
